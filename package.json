@@ -1,0 +1,18 @@
+{
+  "name": "cafe-ops-manager",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Café Ops Manager: expenses, cash reconciliation, HACCP checklists and invoice import for a small café, on Google Apps Script + Google Sheets",
+  "scripts": {
+    "login": "clasp login",
+    "push": "clasp push --force",
+    "deploy": "node strumenti/aggiorna-app.js",
+    "test": "node prove/esegui-test.js",
+    "screenshot": "node prove/screenshot.js",
+    "server-finto": "node prove/server-finto.js 8080"
+  },
+  "devDependencies": {
+    "@google/clasp": "3.4.1",
+    "acorn": "8.15.0"
+  }
+}

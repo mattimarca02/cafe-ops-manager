@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <meta name="format-detection" content="telephone=no">
+  <?!= include('Stile'); ?>
+</head>
+<body>
+<div id="cima"></div>
+
+<!--
+  Icone: tutte SVG in linea, riquadro 24×24, tratto 2px, angoli arrotondati
+  (vedi docs/DESIGN.md). Grafica in Stile.html.
+-->
+
+<!-- ===================== INTESTAZIONE ===================== -->
+<div class="testata">
+  <div class="testata-dentro">
+    <div class="testata-marchio">
+      <span class="testata-logo">
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h12v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V9z"/><path d="M16 10h1.5a2.5 2.5 0 0 1 0 5H16"/><path d="M8 3c0 1.5 1.5 1.5 1.5 3M12 3c0 1.5 1.5 1.5 1.5 3"/></svg>
+      </span>
+      <span class="testata-nomi">
+        <span class="testata-nome">Bar Demo</span>
+        <span class="testata-app">Spese &amp; Cassa</span>
+      </span>
+    </div>
+    <div class="testata-sezione"><span id="testata-sezione"></span></div>
+  </div>
+</div>
+
+<div id="app">
+
+  <!-- Barra della coda offline: dati salvati sul dispositivo in attesa di internet -->
+  <div id="barra-coda" class="barra-coda" style="display:none">
+    <div class="barra-coda-riga">
+      <span class="barra-coda-icona">
+        <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v10M8 10l4 4 4-4"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
+      </span>
+      <p id="barra-coda-testo"></p>
+    </div>
+    <div class="barra-coda-pulsanti">
+      <button type="button" id="barra-coda-invia" class="primario">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V6M6 11l6-6 6 6"/></svg>
+        Invia ora
+      </button><button type="button" id="barra-coda-vedi" class="secondario">Vedi</button>
+    </div>
+  </div>
+
+  <!-- ===================== SCHERMATE ===================== -->
+  <div id="schermi">
+
+    <!-- Avvio -->
+    <div id="schermo-avvio" class="schermo" data-titolo="">
+      <div class="accesso">
+        <span class="accesso-logo">
+          <svg viewBox="0 0 24 24" width="32" height="32" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h12v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V9z"/><path d="M16 10h1.5a2.5 2.5 0 0 1 0 5H16"/><path d="M8 3c0 1.5 1.5 1.5 1.5 3M12 3c0 1.5 1.5 1.5 1.5 3"/></svg>
+        </span>
+        <h1>Bar Demo</h1>
+        <p class="sottotitolo">Spese &amp; Cassa</p>
+        <div class="rotella"></div>
+        <p class="centrato testo-tenue">Apertura in corso…</p>
+      </div>
+    </div>
+
+    <!-- PIN -->
+    <div id="schermo-pin" class="schermo nascosto" data-titolo="Accesso">
+      <div class="accesso carta-pin">
+        <span class="accesso-logo">
+          <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+        </span>
+        <h1>Bentornato</h1>
+        <p class="sottotitolo">Scrivi il PIN</p>
+        <div id="pin-puntini" class="pin-puntini">○○○○</div>
+        <p id="pin-messaggio" class="centrato negativo messaggio-pin"></p>
+        <div class="tastierino">
+          <button type="button" data-cifra="1">1</button><button type="button" data-cifra="2">2</button><button type="button" data-cifra="3">3</button>
+          <button type="button" data-cifra="4">4</button><button type="button" data-cifra="5">5</button><button type="button" data-cifra="6">6</button>
+          <button type="button" data-cifra="7">7</button><button type="button" data-cifra="8">8</button><button type="button" data-cifra="9">9</button>
+          <button type="button" data-cifra="C" class="tasto-servizio" aria-label="Cancella l'ultima cifra"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5h11a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H9l-6-7 6-7z"/><path d="M12 9.5l5 5M17 9.5l-5 5"/></svg></button><button type="button" data-cifra="0">0</button><button type="button" data-cifra="X" class="tasto-servizio">Canc</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- HOME: azioni di tutti i giorni e stato della giornata -->
+    <div id="schermo-home" class="schermo nascosto" data-titolo="Home">
+      <div class="testa-pagina testa-home">
+        <p id="home-data" class="home-data"></p>
+        <h1 class="titolo-pagina">Oggi</h1>
+        <div id="home-persona" class="persona nascosto">
+          <span class="persona-icona">
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
+          </span>
+          <span id="home-persona-testo"></span>
+          <button type="button" id="home-persona-cambia" class="link-semplice">Cambia</button>
+        </div>
+      </div>
+
+      <div class="azioni-home-fuori">
+        <div class="azioni-home">
+          <span class="azioni-home-cella">
+            <button type="button" id="vai-spesa" class="azione-home azione-spesa">
+              <span class="azione-home-icona"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h12v20l-3-2-3 2-3-2-3 2V2z"/><path d="M9 7h6M9 11h6M9 15h4"/></svg></span>
+              <span class="azione-home-titolo">Nuova spesa</span>
+              <span class="azione-home-sotto">Senza fattura</span>
+            </button>
+          </span>
+          <span class="azioni-home-cella">
+            <button type="button" id="vai-chiusura" class="azione-home azione-chiusura">
+              <span class="azione-home-icona"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="10" width="18" height="11" rx="2"/><path d="M7 10V5h10v5"/><path d="M10 7h4M7 15h2M11 15h2M15 15h2"/></svg></span>
+              <span class="azione-home-titolo">Chiusura cassa</span>
+              <span class="azione-home-sotto">Contanti e POS</span>
+            </button>
+          </span>
+        </div>
+      </div>
+
+      <h2 class="titolo-sezione">Da tenere d'occhio</h2>
+      <div class="gruppo">
+        <button type="button" id="vai-haccp" class="riga-menu">
+          <span class="riga-menu-dentro">
+            <span class="riga-menu-icona"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 14.8V4.5a2.5 2.5 0 0 0-5 0v10.3a4.5 4.5 0 1 0 5 0z"/><path d="M11.5 9v8"/></svg></span>
+            <span class="riga-menu-testi">
+              <span class="riga-menu-titolo">Controlli HACCP</span>
+              <span class="riga-menu-sotto" id="home-haccp-stato">Temperature e pulizie</span>
+            </span>
+            <span class="riga-menu-fine"><span id="home-haccp-numero" class="contatore contatore-attenzione nascosto"></span><span id="home-haccp-ok" class="stato-ok nascosto" aria-hidden="true">✓</span></span>
+            <span class="riga-menu-freccia"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
+          </span>
+        </button>
+        <button type="button" id="vai-scadenze" class="riga-menu">
+          <span class="riga-menu-dentro">
+            <span class="riga-menu-icona"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span>
+            <span class="riga-menu-testi">
+              <span class="riga-menu-titolo">Scadenze</span>
+              <span class="riga-menu-sotto" id="home-scadenze-stato">Pagamenti da fare</span>
+            </span>
+            <span class="riga-menu-fine"><span id="home-scadenze-numero" class="contatore nascosto"></span><span id="home-scadenze-ok" class="stato-ok nascosto" aria-hidden="true">✓</span></span>
+            <span class="riga-menu-freccia"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
+          </span>
+        </button>
+        <button type="button" id="vai-ordini" class="riga-menu">
+          <span class="riga-menu-dentro">
+            <span class="riga-menu-icona"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l2.5 12h12L22 7H6.2"/></svg></span>
+            <span class="riga-menu-testi">
+              <span class="riga-menu-titolo">Da ordinare</span>
+              <span class="riga-menu-sotto" id="home-ordini-stato">Lista condivisa</span>
+            </span>
+            <span class="riga-menu-fine"><span id="home-ordini-numero" class="contatore contatore-neutro nascosto"></span></span>
+            <span class="riga-menu-freccia"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
+          </span>
+        </button>
+        <button type="button" id="vai-margini" class="riga-menu">
+          <span class="riga-menu-dentro">
+            <span class="riga-menu-icona"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12l-8 8-9-9V4h7z"/><circle cx="7.5" cy="8.5" r="1.5"/></svg></span>
+            <span class="riga-menu-testi">
+              <span class="riga-menu-titolo">Margini</span>
+              <span class="riga-menu-sotto" id="home-margini-stato">Costo e guadagno dei prodotti</span>
+            </span>
+            <span class="riga-menu-fine"><span id="home-margini-numero" class="contatore nascosto"></span></span>
+            <span class="riga-menu-freccia"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
+          </span>
+        </button>
+      </div>
+    </div>
+
+    <!-- SPESE: pagina della scheda «Spese» -->
+    <div id="schermo-spese" class="schermo nascosto" data-titolo="Spese">
+      <div class="testa-pagina">
+        <h1 class="titolo-pagina">Spese</h1>
+        <p class="sottotitolo-pagina">Spese senza fattura, fornitori e pagamenti da fare.</p>
+      </div>
+      <button type="button" id="spese-nuova" class="primario">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+        Nuova spesa
+      </button>
+      <div class="gruppo">
+        <button type="button" id="vai-elenco" class="riga-menu">
+          <span class="riga-menu-dentro">
+            <span class="riga-menu-icona"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg></span>
+            <span class="riga-menu-testi">
+              <span class="riga-menu-titolo">Cerca e modifica</span>
+              <span class="riga-menu-sotto">Spese già inserite, con filtri</span>
+            </span>
+            <span class="riga-menu-freccia"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
+          </span>
+        </button>
+        <button type="button" id="spese-scadenze" class="riga-menu">
+          <span class="riga-menu-dentro">
+            <span class="riga-menu-icona"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span>
+            <span class="riga-menu-testi">
+              <span class="riga-menu-titolo">Scadenze</span>
+              <span class="riga-menu-sotto">Prossimi 30 giorni</span>
+            </span>
+            <span class="riga-menu-fine"><span id="spese-scadenze-numero" class="contatore nascosto"></span></span>
+            <span class="riga-menu-freccia"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
+          </span>
+        </button>
+        <button type="button" id="vai-fornitori" class="riga-menu">
+          <span class="riga-menu-dentro">
+            <span class="riga-menu-icona"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 7h12v9H2z"/><path d="M14 10h4l3 3v3h-7"/><circle cx="6" cy="18" r="1.8"/><circle cx="17" cy="18" r="1.8"/></svg></span>
+            <span class="riga-menu-testi">
+              <span class="riga-menu-titolo">Fornitori</span>
+              <span class="riga-menu-sotto">Fatture, pagato e da pagare</span>
+            </span>
+            <span class="riga-menu-freccia"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
+          </span>
+        </button>
+      </div>
+      <p class="nota-pagina">Le fatture dei fornitori arrivano da sole: qui registri solo le spese senza fattura.</p>
+    </div>
+
+    <!-- CASSA: pagina della scheda «Cassa» -->
+    <div id="schermo-cassa" class="schermo nascosto" data-titolo="Cassa">
+      <div class="testa-pagina">
+        <h1 class="titolo-pagina">Cassa</h1>
+        <p class="sottotitolo-pagina">Incassi del giorno, versamenti e prelievi.</p>
+      </div>
+      <button type="button" id="cassa-chiusura" class="primario">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+        Chiusura cassa
+      </button>
+      <div class="gruppo">
+        <button type="button" id="cassa-elenco" class="riga-menu">
+          <span class="riga-menu-dentro">
+            <span class="riga-menu-icona"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg></span>
+            <span class="riga-menu-testi">
+              <span class="riga-menu-titolo">Chiusure inserite</span>
+              <span class="riga-menu-sotto">Cerca e modifica le chiusure</span>
+            </span>
+            <span class="riga-menu-freccia"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
+          </span>
+        </button>
+        <button type="button" id="vai-movimenti" class="riga-menu">
+          <span class="riga-menu-dentro">
+            <span class="riga-menu-icona"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 4l9 5.5"/><path d="M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20.5h18"/></svg></span>
+            <span class="riga-menu-testi">
+              <span class="riga-menu-titolo">Versamenti e prelievi</span>
+              <span class="riga-menu-sotto">Contante teorico in cassa</span>
+            </span>
+            <span class="riga-menu-freccia"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
+          </span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ALTRO: tutte le altre pagine -->
+    <div id="schermo-altro" class="schermo nascosto" data-titolo="Altro">
+      <div class="testa-pagina">
+        <h1 class="titolo-pagina">Altro</h1>
+      </div>
+      <h2 class="titolo-sezione">Locale</h2>
+      <div class="gruppo">
+        <button type="button" id="altro-haccp" class="riga-menu">
+          <span class="riga-menu-dentro">
+            <span class="riga-menu-icona"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 14.8V4.5a2.5 2.5 0 0 0-5 0v10.3a4.5 4.5 0 1 0 5 0z"/><path d="M11.5 9v8"/></svg></span>
+            <span class="riga-menu-testi">
+              <span class="riga-menu-titolo">Controlli HACCP</span>
+              <span class="riga-menu-sotto">Temperature, pulizie, registro</span>
+            </span>
+            <span class="riga-menu-freccia"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
+          </span>
+        </button>
+        <button type="button" id="altro-ordini" class="riga-menu">
+          <span class="riga-menu-dentro">
+            <span class="riga-menu-icona"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l2.5 12h12L22 7H6.2"/></svg></span>
+            <span class="riga-menu-testi">
+              <span class="riga-menu-titolo">Da ordinare</span>
+              <span class="riga-menu-sotto">Lista condivisa e ordini</span>
+            </span>
+            <span class="riga-menu-freccia"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
+          </span>
+        </button>
+        <button type="button" id="altro-margini" class="riga-menu">
+          <span class="riga-menu-dentro">
+            <span class="riga-menu-icona"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12l-8 8-9-9V4h7z"/><circle cx="7.5" cy="8.5" r="1.5"/></svg></span>
+            <span class="riga-menu-testi">
+              <span class="riga-menu-titolo">Margini</span>
+              <span class="riga-menu-sotto">Costo e guadagno dei prodotti</span>
+            </span>
+            <span class="riga-menu-freccia"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
+          </span>
+        </button>
+      </div>
+      <h2 class="titolo-sezione">Questo dispositivo</h2>
+      <div class="gruppo">
+        <button type="button" id="altro-coda" class="riga-menu nascosto">
+          <span class="riga-menu-dentro">
+            <span class="riga-menu-icona"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v10M8 10l4 4 4-4"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg></span>
+            <span class="riga-menu-testi">
+              <span class="riga-menu-titolo">In attesa di invio</span>
+              <span class="riga-menu-sotto">Dati salvati solo qui, senza internet</span>
+            </span>
+            <span class="riga-menu-fine"><span id="altro-coda-numero" class="contatore contatore-attenzione"></span></span>
+            <span class="riga-menu-freccia"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
+          </span>
+        </button>
+        <button type="button" id="altro-persona" class="riga-menu nascosto">
+          <span class="riga-menu-dentro">
+            <span class="riga-menu-icona"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></span>
+            <span class="riga-menu-testi">
+              <span class="riga-menu-titolo">Chi sta usando l'app</span>
+              <span class="riga-menu-sotto" id="altro-persona-testo"></span>
+            </span>
+            <span class="riga-menu-freccia"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
+          </span>
+        </button>
+        <button type="button" id="esci" class="riga-menu riga-menu-pericolo">
+          <span class="riga-menu-dentro">
+            <span class="riga-menu-icona"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4h4v16h-4"/><path d="M10 8l-4 4 4 4M6 12h10"/></svg></span>
+            <span class="riga-menu-testi">
+              <span class="riga-menu-titolo">Esci</span>
+              <span class="riga-menu-sotto">Al prossimo accesso servirà il PIN</span>
+            </span>
+          </span>
+        </button>
+      </div>
+      <p class="nota-pagina centrato">Bar Demo · Spese &amp; Cassa</p>
+    </div>
+
+    <!-- CONTROLLI DI OGGI (registro HACCP) -->
+    <div id="schermo-haccp" class="schermo nascosto" data-titolo="Controlli HACCP">
+      <div class="testa-pagina">
+        <button type="button" class="indietro torna-su" data-su="schermo-altro">
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
+          Indietro
+        </button>
+        <h1 class="titolo-pagina">Controlli di oggi</h1>
+        <p class="sottotitolo-pagina" id="haccp-data"></p>
+        <div id="haccp-persona" class="riga-persona nascosto">
+          <span id="haccp-persona-testo"></span>
+          <button type="button" id="haccp-persona-cambia" class="link-semplice">Cambia</button>
+        </div>
+      </div>
+      <div id="haccp-riassunto" class="riassunto riassunto-interno"></div>
+      <div id="haccp-elenco"></div>
+      <div class="carta">
+        <h3>Registro del mese in PDF</h3>
+        <p class="piccolo nota-grafico">Tutti i controlli del mese, da stampare o mostrare in caso di ispezione.</p>
+        <label for="haccp-mese">Mese</label>
+        <select id="haccp-mese"></select>
+        <button type="button" id="haccp-pdf" class="secondario spazio-sopra">
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l4 4v16H6z"/><path d="M14 2v4h4"/><path d="M9 13h6M9 17h6"/></svg>
+          Crea il PDF
+        </button>
+        <div id="haccp-pdf-esito" class="riquadro-file nascosto"></div>
+      </div>
+      <button type="button" class="mostra-altro" data-mostra="haccp-altro">Mostra altro</button>
+      <div id="haccp-altro" class="nascosto">
+        <p class="nota-pagina">Il registro contiene data, controllo, valore, persona e note. I controlli da fare si cambiano nella scheda «Controlli HACCP» del foglio Google.</p>
+      </div>
+    </div>
+
+    <!-- FORNITORI: saldo per fornitore -->
+    <div id="schermo-fornitori" class="schermo nascosto" data-titolo="Fornitori">
+      <div class="testa-pagina">
+        <button type="button" class="indietro torna-su" data-su="schermo-spese">
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
+          Indietro
+        </button>
+        <h1 class="titolo-pagina">Fornitori</h1>
+        <p class="sottotitolo-pagina">Fatture ricevute, già pagate e ancora da pagare.</p>
+      </div>
+      <div id="fornitori-riassunto" class="riassunto riassunto-interno"></div>
+      <p class="etichetta-gruppo">Ordina per</p>
+      <div id="fornitori-ordine" class="scelte segmentato segmentato-tre">
+        <button type="button" data-ordine="daPagare">Da pagare</button><button type="button" data-ordine="anno">Totale anno</button><button type="button" data-ordine="nome">Nome</button>
+      </div>
+      <div id="fornitori-elenco"></div>
+      <p class="nota-pagina">«Da pagare» segue lo scadenzario.</p>
+    </div>
+
+    <!-- FATTURE DI UN FORNITORE -->
+    <div id="schermo-fornitore" class="schermo nascosto" data-titolo="Fornitore">
+      <div class="testa-pagina">
+        <button type="button" id="fornitore-indietro" class="indietro">
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
+          Fornitori
+        </button>
+        <h1 class="titolo-pagina" id="fornitore-nome"></h1>
+        <p id="fornitore-piva" class="sottotitolo-pagina"></p>
+      </div>
+      <div class="carta">
+        <table class="totali" id="fornitore-totali"></table>
+      </div>
+      <h3 class="titolo-gruppo" id="fornitore-titolo-fatture">Fatture</h3>
+      <div id="fornitore-fatture"></div>
+      <p class="nota-pagina">Le fatture senza scadenza nello scadenzario (pagate alla consegna o molto vecchie) contano come già pagate.</p>
+      <button type="button" id="fornitore-torna" class="secondario">Torna ai fornitori</button>
+    </div>
+
+    <!-- VERSAMENTI E PRELIEVI (movimenti di cassa) -->
+    <div id="schermo-movimenti" class="schermo nascosto" data-titolo="Versamenti e prelievi">
+      <div class="testa-pagina">
+        <button type="button" class="indietro torna-su" data-su="schermo-cassa">
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
+          Indietro
+        </button>
+        <h1 class="titolo-pagina">Versamenti e prelievi</h1>
+      </div>
+      <div class="carta">
+        <h3>Contante teorico in cassa</h3>
+        <div id="movimenti-contante"></div>
+      </div>
+
+      <div class="carta modulo">
+        <h3>Nuovo movimento</h3>
+        <label>Che cosa</label>
+        <div id="movimento-tipi" class="scelte"></div>
+        <label for="movimento-importo">Importo (€)</label>
+        <input type="text" id="movimento-importo" class="campo-importo" inputmode="decimal" autocomplete="off" placeholder="0,00">
+        <label for="movimento-data">Data</label>
+        <input type="date" id="movimento-data">
+        <label for="movimento-nota">Nota (facoltativa)</label>
+        <input type="text" id="movimento-nota" autocomplete="off" maxlength="300" placeholder="Es. versamento settimanale">
+        <p class="piccolo" id="movimento-aiuto"></p>
+        <div class="azioni">
+          <button type="button" id="movimento-salva" class="primario">
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+            Salva movimento
+          </button>
+        </div>
+      </div>
+
+      <h3 class="titolo-gruppo">Ultimi movimenti</h3>
+      <div id="movimenti-elenco"></div>
+    </div>
+
+    <!-- MARGINI DEI PRODOTTI -->
+    <div id="schermo-margini" class="schermo nascosto" data-titolo="Margini">
+      <div class="testa-pagina">
+        <button type="button" class="indietro torna-su" data-su="schermo-altro">
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
+          Indietro
+        </button>
+        <h1 class="titolo-pagina">Margini</h1>
+        <p class="sottotitolo-pagina">Quanto costa e quanto rende ogni porzione (prezzi senza IVA).</p>
+      </div>
+      <div id="margini-riassunto" class="riassunto riassunto-interno"></div>
+      <p class="etichetta-gruppo">Ordina per margine</p>
+      <div id="margini-ordine" class="scelte segmentato">
+        <button type="button" data-ordine="basso">Più basso</button><button type="button" data-ordine="alto">Più alto</button>
+      </div>
+      <div id="margini-elenco"></div>
+      <button type="button" id="margini-nuovo" class="primario">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+        Nuovo prodotto
+      </button>
+      <button type="button" class="mostra-altro" data-mostra="margini-altro">Mostra altro</button>
+      <div id="margini-altro" class="nascosto">
+        <p class="nota-pagina">I prezzi d'acquisto si scrivono a mano (qui o nella scheda «Ricette/Costi» del foglio): non vengono presi dalle fatture.</p>
+      </div>
+    </div>
+
+    <!-- PRODOTTO (nuovo o modifica) PER I MARGINI -->
+    <div id="schermo-prodotto-margine" class="schermo nascosto" data-titolo="Prodotto">
+      <div class="testa-pagina">
+        <button type="button" id="pm-indietro" class="indietro">
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
+          Margini
+        </button>
+        <h1 class="titolo-pagina" id="pm-titolo">Nuovo prodotto</h1>
+      </div>
+      <div class="carta modulo">
+        <label for="pm-nome" class="primo-campo">Prodotto</label>
+        <input type="text" id="pm-nome" autocomplete="off" maxlength="80" placeholder="Es. Cappuccino">
+        <label for="pm-prezzo">Prezzo d'acquisto (€)</label>
+        <input type="text" id="pm-prezzo" class="campo-importo" inputmode="decimal" autocomplete="off" placeholder="0,00">
+        <label>Il prezzo d'acquisto è per</label>
+        <div id="pm-unita" class="scelte tre"></div>
+        <label for="pm-quantita" id="pm-quantita-etichetta">Quantità per porzione</label>
+        <input type="text" id="pm-quantita" inputmode="decimal" autocomplete="off" placeholder="Es. 7">
+        <label for="pm-vendita">Prezzo di vendita (€, IVA inclusa)</label>
+        <input type="text" id="pm-vendita" class="campo-importo" inputmode="decimal" autocomplete="off" placeholder="0,00">
+        <label>IVA</label>
+        <div id="pm-iva" class="scelte"></div>
+        <div id="pm-anteprima" class="quadratura nascosto">
+          <span id="pm-anteprima-titolo" class="quadratura-titolo"></span>
+          <span id="pm-anteprima-testo" class="quadratura-testo"></span>
+        </div>
+        <div class="azioni">
+          <button type="button" id="pm-salva" class="primario">
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+            Salva prodotto
+          </button>
+          <button type="button" id="pm-annulla" class="secondario">Annulla</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHI STA USANDO L'APP -->
+    <div id="schermo-persona" class="schermo nascosto" data-titolo="Chi sei?">
+      <div class="testa-pagina">
+        <h1 class="titolo-pagina">Chi sta usando l'app?</h1>
+        <p class="sottotitolo-pagina">Tocca il tuo nome: resta su questo dispositivo e viene scritto accanto a spese e chiusure.</p>
+      </div>
+      <div id="persona-scelte" class="scelte scelte-grandi"></div>
+      <p class="centrato">
+        <button type="button" id="persona-salta" class="link-semplice">Non adesso</button>
+      </p>
+    </div>
+
+    <!-- NUOVA SPESA (anche «Modifica spesa») -->
+    <div id="schermo-spesa" class="schermo nascosto" data-titolo="Nuova spesa">
+      <div class="testa-pagina">
+        <button type="button" id="spesa-indietro" class="indietro">
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
+          Indietro
+        </button>
+        <h1 class="titolo-pagina" id="spesa-titolo">Nuova spesa</h1>
+      </div>
+      <div class="carta modulo">
+        <p class="avviso" id="spesa-avviso"><b>Solo spese SENZA fattura.</b> Le fatture arrivano da sole.</p>
+
+        <label for="spesa-importo">Importo (€)</label>
+        <input type="text" id="spesa-importo" class="campo-importo" inputmode="decimal" autocomplete="off" placeholder="0,00">
+
+        <label for="spesa-data">Data</label>
+        <input type="date" id="spesa-data">
+
+        <label for="spesa-fornitore">Fornitore</label>
+        <input type="text" id="spesa-fornitore" autocomplete="off" autocorrect="off" autocapitalize="words" spellcheck="false" maxlength="80" placeholder="Scrivi il nome per cercare">
+        <div id="fornitore-recenti" class="scelte" style="display:none"></div>
+        <div id="fornitore-suggerimenti" class="suggerimenti" style="display:none"></div>
+        <p class="piccolo" id="fornitore-nuovo-nota" style="display:none">Fornitore nuovo: viene aggiunto all'elenco quando salvi.</p>
+
+        <label>Categoria</label>
+        <div id="spesa-categorie" class="scelte"></div>
+
+        <label>Pagamento</label>
+        <div id="spesa-pagamenti" class="scelte tre"></div>
+
+        <label for="spesa-nota">Nota (facoltativa)</label>
+        <input type="text" id="spesa-nota" autocomplete="off" maxlength="300">
+
+        <label for="spesa-scadenza">Da pagare entro (facoltativo)</label>
+        <input type="date" id="spesa-scadenza">
+        <div id="spesa-scadenza-rapide" class="scelte">
+          <button type="button" id="spesa-scadenza-7">Tra 7 giorni</button>
+          <button type="button" id="spesa-scadenza-30">Tra 30 giorni</button>
+        </div>
+        <p class="piccolo" id="spesa-scadenza-nota" style="display:none">Da pagare entro serve per spese ancora da saldare.</p>
+        <p class="piccolo" id="spesa-scadenza-togli-riga" style="display:none"><button type="button" id="spesa-scadenza-togli" class="link-semplice">Togli la data</button></p>
+
+        <label>Scontrino o bolla (facoltativo)</label>
+        <div id="foto-esistente" class="riquadro-file nascosto">
+          <p class="riquadro-file-riga">
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11l-8.5 8.5a5 5 0 0 1-7-7L13 4a3.5 3.5 0 0 1 5 5l-8.5 8.5a2 2 0 0 1-3-3L14 7"/></svg>
+            <b>C'è già uno scontrino salvato.</b><br>
+            <a id="foto-esistente-link" class="link-scontrino" href="#" target="_blank">Vedi lo scontrino salvato</a>
+          </p>
+          <button type="button" id="foto-esistente-togli" class="secondario">Togli lo scontrino salvato</button>
+          <p class="piccolo">Per cambiarlo, scegli qui sotto una nuova foto o un nuovo file.</p>
+        </div>
+        <p id="foto-tolta" class="avviso nascosto">Lo scontrino salvato verrà tolto quando premi «Salva modifiche».<br>
+          <button type="button" id="foto-tolta-annulla" class="link-semplice link-in-avviso">Non toglierlo</button></p>
+        <div id="foto-pulsanti">
+          <div class="bottone bottone-file">
+            <span class="bottone-file-icona">
+              <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h4l2-3h6l2 3h4v12H3z"/><circle cx="12" cy="13" r="4"/></svg>
+            </span>
+            <span class="bottone-file-testo">Foto o file scontrino</span>
+            <input type="file" id="foto-file" accept="image/*,application/pdf">
+          </div>
+          <p class="piccolo">Scatta una foto o scegli un'immagine o un PDF.</p>
+        </div>
+        <div id="foto-riquadro" class="nascosto">
+          <img id="foto-anteprima" alt="Foto dello scontrino">
+          <p id="foto-pdf" class="riquadro-file nascosto">
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l4 4v16H6z"/><path d="M14 2v4h4"/></svg>
+            <span id="foto-pdf-nome"></span>
+          </p>
+          <button type="button" id="foto-togli" class="secondario">Togli la foto o il file</button>
+        </div>
+
+        <div class="azioni">
+          <button type="button" id="spesa-salva" class="primario">
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+            <span id="spesa-salva-testo">Salva spesa</span>
+          </button>
+          <button type="button" id="spesa-annulla" class="secondario">Annulla</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHIUSURA CASSA (anche «Modifica chiusura cassa») -->
+    <div id="schermo-chiusura" class="schermo nascosto" data-titolo="Chiusura cassa">
+      <div class="testa-pagina">
+        <button type="button" id="chiusura-indietro" class="indietro">
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
+          Indietro
+        </button>
+        <h1 class="titolo-pagina" id="chiusura-titolo">Chiusura cassa</h1>
+      </div>
+      <div class="carta modulo">
+        <label for="chiusura-data" class="primo-campo">Data</label>
+        <input type="date" id="chiusura-data">
+
+        <label for="chiusura-contanti">Incasso in contanti (€)</label>
+        <input type="text" id="chiusura-contanti" class="campo-importo" inputmode="decimal" autocomplete="off" placeholder="0,00">
+        <p class="piccolo">Senza il fondo cassa.</p>
+
+        <label for="chiusura-pos">Incasso POS / carte (€)</label>
+        <input type="text" id="chiusura-pos" class="campo-importo" inputmode="decimal" autocomplete="off" placeholder="0,00">
+
+        <label for="chiusura-fondo">Fondo cassa (€)</label>
+        <input type="text" id="chiusura-fondo" inputmode="decimal" autocomplete="off" placeholder="0,00">
+
+        <label for="chiusura-registratore">Totale registratore telematico (€)</label>
+        <input type="text" id="chiusura-registratore" class="campo-importo" inputmode="decimal" autocomplete="off" placeholder="0,00">
+        <button type="button" class="mostra-altro mostra-altro-campo" data-mostra="chiusura-registratore-aiuto">Che cos'è?</button>
+        <p class="piccolo nascosto" id="chiusura-registratore-aiuto">Facoltativo: il totale dello scontrino di chiusura giornaliera del registratore. Serve per controllare che la cassa torni.</p>
+
+        <div class="totale-grande">
+          <span class="totale-grande-etichetta">Totale incasso</span>
+          <span class="totale-grande-cifra" id="chiusura-totale">0,00 €</span>
+        </div>
+
+        <div id="chiusura-quadratura" class="quadratura nascosto">
+          <span id="chiusura-quadratura-titolo" class="quadratura-titolo"></span>
+          <span id="chiusura-quadratura-testo" class="quadratura-testo"></span>
+        </div>
+
+        <label for="chiusura-note" id="chiusura-note-etichetta">Note (facoltative)</label>
+        <input type="text" id="chiusura-note" autocomplete="off" maxlength="300">
+
+        <div class="azioni">
+          <button type="button" id="chiusura-salva" class="primario">
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+            <span id="chiusura-salva-testo">Salva chiusura</span>
+          </button>
+          <button type="button" id="chiusura-annulla" class="secondario">Annulla</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIEPILOGO -->
+    <div id="schermo-riepilogo" class="schermo nascosto" data-titolo="Riepilogo">
+      <div class="testa-pagina">
+        <h1 class="titolo-pagina">Riepilogo</h1>
+      </div>
+
+      <div class="navigazione-mese">
+        <div class="navigazione-riga">
+          <span class="navigazione-cella">
+            <button type="button" id="mese-prima" class="tasto-mese" aria-label="Mese prima">
+              <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
+            </button>
+          </span>
+          <span class="navigazione-cella navigazione-centro">
+            <span class="navigazione-etichetta">Mese</span>
+            <span id="riepilogo-mese"></span>
+          </span>
+          <span class="navigazione-cella">
+            <button type="button" id="mese-dopo" class="tasto-mese" aria-label="Mese dopo">
+              <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+            </button>
+          </span>
+        </div>
+      </div>
+
+      <div id="riepilogo-numeri" class="numeri"></div>
+
+      <!-- Sezioni a fisarmonica: il contenuto si disegna solo quando la sezione si apre -->
+      <div id="riepilogo-sezioni">
+
+        <div class="carta sezione nascosto" id="sezione-dafare">
+          <h3 class="sezione-h"><button type="button" class="sezione-testa" id="testa-dafare" data-sezione="dafare" aria-expanded="false" aria-controls="corpo-dafare">
+            <span class="sezione-riga">
+              <span class="sezione-icona"><span class="bollo icona-attenzione"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 7-7"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h9"/></svg></span></span>
+              <span class="sezione-testi">
+                <span class="sezione-titolo">Da fare <span id="badge-dafare" class="contatore contatore-attenzione"></span></span>
+                <span class="sezione-riassunto" id="riassunto-dafare"></span>
+              </span>
+              <span class="sezione-freccia"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
+            </span>
+          </button></h3>
+          <div class="sezione-corpo nascosto" id="corpo-dafare" role="region" aria-labelledby="testa-dafare">
+            <div id="riepilogo-da-categorizzare" class="nascosto">
+              <div class="avviso" id="riepilogo-avviso-fatture"></div>
+              <div id="riepilogo-fornitori-senza-categoria"></div>
+            </div>
+            <div id="riepilogo-dafare-voci"></div>
+          </div>
+        </div>
+
+        <div class="carta sezione" id="sezione-categorie">
+          <h3 class="sezione-h"><button type="button" class="sezione-testa" id="testa-categorie" data-sezione="categorie" aria-expanded="false" aria-controls="corpo-categorie">
+            <span class="sezione-riga">
+              <span class="sezione-icona"><span class="bollo"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9"/><path d="M12 3v9h9"/></svg></span></span>
+              <span class="sezione-testi">
+                <span class="sezione-titolo">Spese per categoria e budget</span>
+                <span class="sezione-riassunto" id="riassunto-categorie"></span>
+              </span>
+              <span class="sezione-freccia"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
+            </span>
+          </button></h3>
+          <div class="sezione-corpo nascosto" id="corpo-categorie" role="region" aria-labelledby="testa-categorie">
+            <h4 class="sotto-titolo">Budget del mese</h4>
+            <p class="piccolo nota-grafico">Spese senza fattura + fatture, rispetto al tetto di ogni categoria (scheda «Budget» del foglio).</p>
+            <div id="riepilogo-budget"></div>
+            <h4 class="sotto-titolo">Spese per categoria</h4>
+            <p class="piccolo nota-grafico">Spese senza fattura + fatture fornitori, dalla più alta.</p>
+            <table class="totali" id="riepilogo-categorie"></table>
+          </div>
+        </div>
+
+        <div class="carta sezione" id="sezione-andamento">
+          <h3 class="sezione-h"><button type="button" class="sezione-testa" id="testa-andamento" data-sezione="andamento" aria-expanded="false" aria-controls="corpo-andamento">
+            <span class="sezione-riga">
+              <span class="sezione-icona"><span class="bollo"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-6 4 4 8-9"/><path d="M15 6h5v5"/></svg></span></span>
+              <span class="sezione-testi">
+                <span class="sezione-titolo">Andamento</span>
+                <span class="sezione-riassunto" id="riassunto-andamento"></span>
+              </span>
+              <span class="sezione-freccia"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
+            </span>
+          </button></h3>
+          <div class="sezione-corpo nascosto" id="corpo-andamento" role="region" aria-labelledby="testa-andamento">
+            <h4 class="sotto-titolo">Confronto</h4>
+            <p class="piccolo nota-grafico" id="confronto-nota"></p>
+            <p class="legenda"><span class="legenda-voce"><span class="chiave colore-incassi"></span>Incassi</span> <span class="legenda-voce"><span class="chiave colore-spese"></span>Spese</span></p>
+            <div id="grafico-confronto"></div>
+
+            <h4 class="sotto-titolo">Ultimi 12 mesi</h4>
+            <p class="legenda"><span class="legenda-voce"><span class="chiave colore-incassi"></span>Incassi</span> <span class="legenda-voce"><span class="chiave colore-spese"></span>Spese</span></p>
+            <div class="scheda-grafico">
+              <p id="grafico-mesi-scala" class="scala"></p>
+              <div id="grafico-mesi" class="colonne"></div>
+              <div id="grafico-mesi-etichette" class="etichette-colonne"></div>
+              <p id="grafico-mesi-dettaglio" class="dettaglio-grafico"></p>
+            </div>
+            <button type="button" id="grafico-mesi-numeri" class="link-semplice">Vedi i numeri mese per mese</button>
+            <div id="tabella-mesi" class="nascosto"><table class="totali" id="tabella-mesi-righe"></table></div>
+
+            <h4 class="sotto-titolo">Incasso medio per giorno della settimana</h4>
+            <p class="piccolo nota-grafico">Ultimi 12 mesi, contando solo i giorni con la chiusura cassa.</p>
+            <div id="grafico-settimana"></div>
+          </div>
+        </div>
+
+        <div class="carta sezione" id="sezione-fatture">
+          <h3 class="sezione-h"><button type="button" class="sezione-testa" id="testa-fatture" data-sezione="fatture" aria-expanded="false" aria-controls="corpo-fatture">
+            <span class="sezione-riga">
+              <span class="sezione-icona"><span class="bollo"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg></span></span>
+              <span class="sezione-testi">
+                <span class="sezione-titolo">Fatture e fornitori</span>
+                <span class="sezione-riassunto" id="riassunto-fatture"></span>
+              </span>
+              <span class="sezione-freccia"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
+            </span>
+          </button></h3>
+          <div class="sezione-corpo nascosto" id="corpo-fatture" role="region" aria-labelledby="testa-fatture">
+            <table class="totali" id="riepilogo-spese-righe"></table>
+          </div>
+        </div>
+
+        <div class="carta sezione" id="sezione-cassa">
+          <h3 class="sezione-h"><button type="button" class="sezione-testa" id="testa-cassa" data-sezione="cassa" aria-expanded="false" aria-controls="corpo-cassa">
+            <span class="sezione-riga">
+              <span class="sezione-icona"><span class="bollo"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></svg></span></span>
+              <span class="sezione-testi">
+                <span class="sezione-titolo">Cassa</span>
+                <span class="sezione-riassunto" id="riassunto-cassa"></span>
+              </span>
+              <span class="sezione-freccia"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
+            </span>
+          </button></h3>
+          <div class="sezione-corpo nascosto" id="corpo-cassa" role="region" aria-labelledby="testa-cassa">
+            <h4 class="sotto-titolo">Contante teorico in cassa</h4>
+            <div id="riepilogo-contante"></div>
+            <h4 class="sotto-titolo">Incassi, versamenti e quadratura del mese</h4>
+            <table class="totali" id="riepilogo-cassa-righe"></table>
+          </div>
+        </div>
+
+        <div class="carta sezione" id="sezione-copertura">
+          <h3 class="sezione-h"><button type="button" class="sezione-testa" id="testa-copertura" data-sezione="copertura" aria-expanded="false" aria-controls="corpo-copertura">
+            <span class="sezione-riga">
+              <span class="sezione-icona"><span class="bollo"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v6c0 1.7 3.1 3 7 3s7-1.3 7-3V6"/><path d="M5 12v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6"/></svg></span></span>
+              <span class="sezione-testi">
+                <span class="sezione-titolo">Spese coperte dai ricavi</span>
+                <span class="sezione-riassunto" id="riassunto-copertura"></span>
+              </span>
+              <span class="sezione-freccia"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
+            </span>
+          </button></h3>
+          <div class="sezione-corpo nascosto" id="corpo-copertura" role="region" aria-labelledby="testa-copertura">
+            <p class="piccolo nota-grafico">Ogni incasso della chiusura cassa copre la spesa più vecchia ancora aperta, poi quella dopo. Se avanza, resta a disposizione per le spese successive.</p>
+
+            <div class="cop-periodo">
+              <div class="navigazione-riga">
+                <span class="navigazione-cella">
+                  <button type="button" id="cop-prima" class="tasto-mese" aria-label="Periodo prima">
+                    <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
+                  </button>
+                </span>
+                <span class="navigazione-cella navigazione-centro">
+                  <span class="navigazione-etichetta" id="cop-tipo-etichetta">Periodo</span>
+                  <span id="cop-etichetta" class="cop-etichetta"></span>
+                </span>
+                <span class="navigazione-cella">
+                  <button type="button" id="cop-dopo" class="tasto-mese" aria-label="Periodo dopo">
+                    <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+                  </button>
+                </span>
+              </div>
+            </div>
+            <div class="scelte cop-pillole" id="cop-periodi">
+              <button type="button" data-periodo="questo">Questo mese</button><button type="button" data-periodo="scorso">Mese scorso</button><button type="button" data-periodo="trimestre">Trimestre</button><button type="button" data-periodo="anno">Anno</button><button type="button" data-periodo="personalizzato">Personalizzato</button>
+            </div>
+            <div id="cop-personalizzato" class="cop-personalizzato nascosto">
+              <label for="cop-da">Dal giorno</label>
+              <input type="date" id="cop-da">
+              <label for="cop-a">Al giorno</label>
+              <input type="date" id="cop-a">
+              <div class="avviso cop-avviso nascosto" id="cop-errore"></div>
+              <button type="button" id="cop-applica" class="primario spazio-sopra">Mostra questo periodo</button>
+            </div>
+
+            <h4 class="sotto-titolo">Spese considerate</h4>
+            <div class="scelte segmentato segmentato-tre" id="cop-filtro">
+              <button type="button" data-filtro="tutte">Tutte</button><button type="button" data-filtro="senzaFattura">Senza fattura</button><button type="button" data-filtro="fatture">Fatture</button>
+            </div>
+
+            <div id="cop-contenuto" class="cop-contenuto"></div>
+          </div>
+        </div>
+
+        <div class="carta sezione" id="sezione-ultime">
+          <h3 class="sezione-h"><button type="button" class="sezione-testa" id="testa-ultime" data-sezione="ultime" aria-expanded="false" aria-controls="corpo-ultime">
+            <span class="sezione-riga">
+              <span class="sezione-icona"><span class="bollo"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span></span>
+              <span class="sezione-testi">
+                <span class="sezione-titolo">Ultime spese</span>
+                <span class="sezione-riassunto" id="riassunto-ultime"></span>
+              </span>
+              <span class="sezione-freccia"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
+            </span>
+          </button></h3>
+          <div class="sezione-corpo nascosto" id="corpo-ultime" role="region" aria-labelledby="testa-ultime">
+            <p class="piccolo nota-grafico">Le ultime 10 spese inserite.</p>
+            <div id="riepilogo-ultime"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- CERCA E MODIFICA -->
+    <div id="schermo-elenco" class="schermo nascosto" data-titolo="Cerca e modifica">
+      <div class="testa-pagina">
+        <button type="button" class="indietro torna-su" data-su="schermo-spese">
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
+          Indietro
+        </button>
+        <h1 class="titolo-pagina">Cerca e modifica</h1>
+      </div>
+      <div id="elenco-tipo" class="scelte segmentato">
+        <button type="button" data-tipo="spese">Spese</button><button type="button" data-tipo="chiusure">Chiusure</button>
+      </div>
+
+      <div class="carta carta-filtri">
+        <label for="elenco-testo" id="elenco-testo-etichetta" class="primo-campo">Cerca fornitore, nota o importo</label>
+        <div class="riga-cerca">
+          <span class="riga-cerca-campo">
+            <input type="text" id="elenco-testo" autocomplete="off" maxlength="80" placeholder="Es. panificio">
+          </span>
+          <span class="riga-cerca-pulsante">
+            <button type="button" id="elenco-cerca" class="primario">
+              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+              Cerca
+            </button>
+          </span>
+        </div>
+
+        <button type="button" id="elenco-filtri-apri" class="mostra-altro" data-mostra="elenco-filtri">Filtri</button>
+        <div id="elenco-filtri" class="nascosto">
+        <label for="elenco-mese" class="primo-campo">Mese</label>
+        <select id="elenco-mese"></select>
+        <div id="elenco-filtri-spese">
+          <label for="elenco-categoria">Categoria</label>
+          <select id="elenco-categoria"></select>
+          <label for="elenco-pagamento">Pagamento</label>
+          <select id="elenco-pagamento"></select>
+        </div>
+        <div id="elenco-filtro-persona">
+          <label for="elenco-persona">Inserito da</label>
+          <select id="elenco-persona"></select>
+        </div>
+        </div>
+        <button type="button" id="elenco-azzera" class="link-semplice">Togli tutti i filtri</button>
+      </div>
+
+      <div id="elenco-riassunto" class="riassunto"></div>
+      <div id="elenco-voci"></div>
+    </div>
+
+    <!-- SCADENZE -->
+    <div id="schermo-scadenze" class="schermo nascosto" data-titolo="Scadenze">
+      <div class="testa-pagina">
+        <button type="button" class="indietro torna-su" data-su="schermo-spese">
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
+          Indietro
+        </button>
+        <h1 class="titolo-pagina">Scadenze</h1>
+        <p class="sottotitolo-pagina">Prossimi 30 giorni e scadute non ancora pagate.</p>
+      </div>
+      <div id="scadenze-riassunto" class="riassunto riassunto-interno"></div>
+      <div id="scadenze-elenco"></div>
+      <button type="button" id="scadenze-nuova" class="primario">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+        Nuova scadenza
+      </button>
+      <button type="button" id="scadenze-fisse" class="secondario">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/><path d="M8 15l2.5 2.5L16 13"/></svg>
+        Scadenze fisse del locale
+      </button>
+      <p class="piccolo">Estintori, macchina del caffè, assicurazione, SIAE, canone RAI, TARI, impianti: modelli pronti da attivare.</p>
+      <h3 class="titolo-gruppo">Pagate di recente</h3>
+      <div id="scadenze-pagate"></div>
+    </div>
+
+    <!-- SCADENZE FISSE DEL LOCALE -->
+    <div id="schermo-scadenze-fisse" class="schermo nascosto" data-titolo="Scadenze fisse">
+      <div class="testa-pagina">
+        <button type="button" id="sf-indietro" class="indietro">
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
+          Scadenze
+        </button>
+        <h1 class="titolo-pagina">Scadenze fisse del locale</h1>
+        <p class="sottotitolo-pagina">Scrivi la data della prossima scadenza e attiva il promemoria: arriverà l'email come per gli altri pagamenti.</p>
+      </div>
+      <div id="sf-elenco"></div>
+      <p class="nota-pagina">Si trovano anche nella scheda «Scadenze ricorrenti» del foglio (righe con ID che inizia con «RM-»).</p>
+      <button type="button" id="sf-torna" class="secondario">Torna alle scadenze</button>
+    </div>
+
+    <!-- NUOVA SCADENZA -->
+    <div id="schermo-nuova-scadenza" class="schermo nascosto" data-titolo="Nuova scadenza">
+      <div class="testa-pagina">
+        <button type="button" id="ns-indietro" class="indietro">
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
+          Indietro
+        </button>
+        <h1 class="titolo-pagina">Nuova scadenza</h1>
+      </div>
+      <div class="carta modulo">
+        <label for="ns-descrizione" class="primo-campo">Che cosa va pagato</label>
+        <input type="text" id="ns-descrizione" autocomplete="off" maxlength="120" placeholder="Es. Affitto">
+        <label for="ns-importo">Importo (€, facoltativo)</label>
+        <input type="text" id="ns-importo" class="campo-importo" inputmode="decimal" autocomplete="off" placeholder="0,00">
+        <label for="ns-data">Data della scadenza</label>
+        <input type="date" id="ns-data">
+        <label>Si ripete?</label>
+        <div id="ns-frequenze" class="scelte"></div>
+        <button type="button" class="mostra-altro mostra-altro-campo" data-mostra="ns-altro">Mostra altro</button>
+        <p class="piccolo nascosto" id="ns-altro">Le scadenze che si ripetono si trovano anche nella scheda «Scadenze ricorrenti» del foglio,
+          dove si possono cambiare o disattivare.</p>
+        <div class="azioni">
+          <button type="button" id="ns-salva" class="primario">
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+            Salva scadenza
+          </button>
+          <button type="button" id="ns-annulla" class="secondario">Annulla</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- DA ORDINARE (lista riordino condivisa) -->
+    <div id="schermo-ordini" class="schermo nascosto" data-titolo="Da ordinare">
+      <div class="testa-pagina">
+        <button type="button" class="indietro torna-su" data-su="schermo-altro">
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
+          Indietro
+        </button>
+        <h1 class="titolo-pagina">Da ordinare</h1>
+        <p class="sottotitolo-pagina">Lista condivisa: la vede chiunque apra l'app.</p>
+      </div>
+      <div id="ordini-fornitori"></div>
+      <div class="carta">
+        <h3>Tutti i prodotti</h3>
+        <p class="piccolo nota-grafico">Tocca un prodotto per aggiungerlo alla lista o toglierlo.</p>
+        <input type="text" id="ordini-cerca" autocomplete="off" maxlength="40" placeholder="Cerca un prodotto">
+        <div id="ordini-prodotti"></div>
+      </div>
+      <button type="button" id="ordini-nuovo" class="primario">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+        Nuovo prodotto
+      </button>
+    </div>
+
+    <!-- NUOVO PRODOTTO -->
+    <div id="schermo-nuovo-prodotto" class="schermo nascosto" data-titolo="Nuovo prodotto">
+      <div class="testa-pagina">
+        <button type="button" id="np-indietro" class="indietro">
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
+          Indietro
+        </button>
+        <h1 class="titolo-pagina">Nuovo prodotto</h1>
+      </div>
+      <div class="carta modulo">
+        <label for="np-nome" class="primo-campo">Prodotto</label>
+        <input type="text" id="np-nome" autocomplete="off" maxlength="80" placeholder="Es. Acqua naturale 1,5 l">
+        <label for="np-fornitore">Fornitore</label>
+        <select id="np-fornitore"></select>
+        <div id="np-riquadro-fornitore-nuovo" class="nascosto">
+          <label for="np-fornitore-nuovo">Nome del nuovo fornitore</label>
+          <input type="text" id="np-fornitore-nuovo" autocomplete="off" maxlength="80">
+        </div>
+        <label for="np-unita">Unità (facoltativa)</label>
+        <input type="text" id="np-unita" autocomplete="off" maxlength="20" placeholder="Es. casse, kg, pezzi">
+        <div class="scelte scelta-singola"><button type="button" id="np-subito" class="scelto">Mettilo subito nella lista da ordinare</button></div>
+        <div class="azioni">
+          <button type="button" id="np-salva" class="primario">
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+            Salva prodotto
+          </button>
+          <button type="button" id="np-annulla" class="secondario">Annulla</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- IN ATTESA DI INVIO (coda offline) -->
+    <div id="schermo-coda" class="schermo nascosto" data-titolo="In attesa di invio">
+      <div class="testa-pagina">
+        <button type="button" class="indietro torna-su" data-su="schermo-altro">
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
+          Indietro
+        </button>
+        <h1 class="titolo-pagina">In attesa di invio</h1>
+        <p class="sottotitolo-pagina">Salvati solo su questo dispositivo: partono da soli quando c'è internet.</p>
+      </div>
+      <p class="avviso">Non cancellare i dati del browser finché non sono stati inviati.</p>
+      <button type="button" id="coda-invia" class="primario">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V6M6 11l6-6 6 6"/></svg>
+        Invia ora
+      </button>
+      <div id="coda-elenco"></div>
+      <p id="coda-spazio" class="nota-pagina"></p>
+    </div>
+  </div>
+
+  <!-- ===================== PANNELLI ===================== -->
+  <div id="pannello-attesa" class="pannello">
+    <p class="attesa-riga"><span class="rotella rotella-piccola"></span><span class="messaggio" id="attesa-testo">Attendere…</span></p>
+    <!-- Scheletro: dà l'idea della pagina che sta arrivando -->
+    <div class="scheletro" aria-hidden="true">
+      <span class="scheletro-riga scheletro-titolo"></span>
+      <span class="scheletro-riga scheletro-corta"></span>
+      <span class="scheletro-blocco"></span>
+      <span class="scheletro-blocco"></span>
+      <span class="scheletro-blocco scheletro-basso"></span>
+    </div>
+  </div>
+
+  <div id="pannello-errore" class="pannello">
+    <div class="carta carta-centrata banner banner-errore">
+      <div class="cerchio-icona cerchio-rosso">
+        <svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3L2 20h20L12 3z"/><path d="M12 10v4M12 17.5v.1"/></svg>
+      </div>
+      <p class="messaggio" id="errore-testo"></p>
+      <button type="button" id="errore-riprova" class="primario">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v5h-5"/></svg>
+        Riprova
+      </button>
+      <button type="button" id="errore-chiudi" class="secondario">Annulla</button>
+    </div>
+  </div>
+
+  <div id="pannello-conferma" class="pannello">
+    <div class="carta carta-centrata banner banner-conferma">
+      <div class="cerchio-icona cerchio-accento">
+        <svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 0 1 5 0c0 1.7-2.5 2-2.5 3.8M12 17v.1"/></svg>
+      </div>
+      <p class="messaggio" id="conferma-testo"></p>
+      <button type="button" id="conferma-si" class="pericolo">Sì</button>
+      <button type="button" id="conferma-no" class="secondario">No</button>
+    </div>
+  </div>
+
+  <div id="pannello-in-coda" class="pannello">
+    <div class="carta carta-centrata banner banner-in-coda">
+      <div class="cerchio-icona cerchio-accento">
+        <svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="2"/><path d="M11 18h2"/><path d="M9.5 10l2 2 3.5-4"/></svg>
+      </div>
+      <p class="messaggio" id="in-coda-testo"></p>
+      <button type="button" id="in-coda-ok" class="primario">Ho capito</button>
+    </div>
+  </div>
+
+  <div id="pannello-salvato" class="pannello">
+    <div class="salvato" role="status">
+      <span class="salvato-icona">
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+      </span>
+      <span class="messaggio" id="salvato-testo">Salvato ✓</span>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== BARRA IN BASSO ===================== -->
+<div id="navigazione" class="navigazione" style="display:none" role="navigation" aria-label="Sezioni principali">
+  <div class="navigazione-dentro">
+    <span class="navigazione-voce"><button type="button" id="nav-home" data-scheda="schermo-home">
+      <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L12 3l9 7.5"/><path d="M5 9.5V20h14V9.5"/><path d="M10 20v-6h4v6"/></svg>
+      <span class="navigazione-nome">Home</span>
+    </button></span>
+    <span class="navigazione-voce"><button type="button" id="nav-spese" data-scheda="schermo-spese">
+      <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h12v20l-3-2-3 2-3-2-3 2V2z"/><path d="M9 7h6M9 11h6M9 15h4"/></svg>
+      <span class="navigazione-nome">Spese</span>
+    </button></span>
+    <span class="navigazione-voce"><button type="button" id="nav-cassa" data-scheda="schermo-cassa">
+      <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="10" width="18" height="11" rx="2"/><path d="M7 10V5h10v5"/><path d="M10 7h4M7 15h2M11 15h2M15 15h2"/></svg>
+      <span class="navigazione-nome">Cassa</span>
+    </button></span>
+    <span class="navigazione-voce"><button type="button" id="vai-riepilogo" data-scheda="schermo-riepilogo">
+      <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V4M4 20h16"/><path d="M8 16v-4M12 16V8M16 16v-6"/></svg>
+      <span class="navigazione-nome">Riepilogo</span>
+    </button></span>
+    <span class="navigazione-voce"><button type="button" id="nav-altro" data-scheda="schermo-altro">
+      <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="19" cy="12" r="1.2"/></svg>
+      <span class="navigazione-nome">Altro</span>
+    </button></span>
+  </div>
+</div>
+
+<?!= include('Script'); ?>
+</body>
+</html>

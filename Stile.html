@@ -1,0 +1,2197 @@
+<style>
+  /*
+   * Bar Demo - Spese & Cassa: grafica.
+   * Le scelte (colori, tipografia, spaziature, componenti) sono spiegate in docs/DESIGN.md.
+   *
+   * Compatibile anche con Safari molto vecchi (iPad datati):
+   * niente CSS Grid, niente variabili CSS, niente "gap", niente clamp/min/max/calc,
+   * niente :is/:where, niente flexbox: solo inline-block, display:table e position:fixed.
+   * Il controllo automatico è in prove/controllo-client.js (npm test).
+   *
+   * Palette (valori scritti a mano: niente variabili CSS)
+   *   Espresso            #3a2418   intestazione, titoli, voce attiva
+   *   Testo               #2b1d14   testo principale
+   *   Testo secondario    #6b5a4c   etichette e dettagli
+   *   Crema (sfondo)      #f6f2ec   superficie tenue #faf7f3
+   *   Bordo               #e9e1d6   separatori #efe8df   bordo campi #d3c6b6
+   *   Ambra               #b4561b   azione principale   tenue #fcefe3   testo #7a360c
+   *   Verde (a posto)     #2f7a4a   tenue #e7f3ec   testo #1e5a35
+   *   Ocra (attenzione)   #8a5a00   tenue #fdf3d7   testo #6e4700
+   *   Rosso (problema)    #b42318   tenue #fdecea   testo #912018
+   *
+   * Spaziature su griglia di 4/8px: 4 8 12 16 24 32 48. Raggi: 8 12 16 pillola.
+   */
+
+  * {
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+  }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #f6f2ec;
+    color: #2b1d14;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 18px;
+    line-height: 1.45;
+    -webkit-text-size-adjust: 100%;
+    -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+  }
+  p { margin: 0 0 12px 0; }
+  h1, h2, h3, h4 {
+    color: #2b1d14;
+    line-height: 1.25;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  h1 { font-size: 28px; margin: 0 0 8px 0; letter-spacing: -0.3px; }
+  h2 { font-size: 21px; margin: 0; }
+  h3 { font-size: 19px; margin: 0 0 8px 0; }
+  svg { overflow: hidden; }
+  b, strong { font-weight: 600; }
+  .centrato { text-align: center; }
+  .nascosto { display: none; }
+  .piccolo { font-size: 17px; color: #6b5a4c; margin: 8px 0 0 0; line-height: 1.4; }
+  .testo-tenue { color: #6b5a4c; }
+  .sottotitolo { color: #6b5a4c; font-size: 18px; text-align: center; margin: 0 0 16px 0; }
+  .positivo { color: #1e5a35; }
+  .negativo { color: #b42318; }
+  .senza-margine { margin: 0; }
+  .spazio-sopra { margin-top: 16px; }
+
+  /* Cifre tabellari: gli importi si allineano in colonna */
+  .campo-importo, .totale-grande-cifra, .numero-cifra, .riassunto-cifra, .contante-cifra,
+  .riga-spesa-importo, table.totali td.cifra, .contatore, .pin-puntini, .quantita .valore {
+    font-variant-numeric: tabular-nums;
+    -webkit-font-feature-settings: "tnum";
+    font-feature-settings: "tnum";
+  }
+
+  /* ---------------------------------------------------------------------
+     Intestazione
+     --------------------------------------------------------------------- */
+  .testata {
+    background: #3a2418;
+    color: #ffffff;
+  }
+  .testata-dentro {
+    display: table;
+    width: 100%;
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 10px 16px;
+  }
+  .testata-marchio,
+  .testata-sezione {
+    display: table-cell;
+    vertical-align: middle;
+  }
+  .testata-sezione {
+    display: none;
+    text-align: right;
+    padding-left: 12px;
+  }
+  .testata-logo {
+    display: inline-block;
+    vertical-align: middle;
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    margin-right: 12px;
+    border-radius: 12px;
+    background: #b4561b;
+    color: #ffffff;
+    font-size: 0;
+    text-align: center;
+  }
+  .testata-logo svg { vertical-align: middle; }
+  .testata-nomi {
+    display: inline-block;
+    vertical-align: middle;
+  }
+  .testata-nome {
+    display: block;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.2;
+    color: #ffffff;
+  }
+  .testata-app {
+    display: block;
+    font-size: 17px;
+    line-height: 1.2;
+    color: #e6d5c3;
+  }
+  #testata-sezione {
+    font-size: 17px;
+    font-weight: 600;
+    color: #e6d5c3;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+
+  /* ---------------------------------------------------------------------
+     Contenitore, testa della pagina, carte
+     --------------------------------------------------------------------- */
+  #app {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 16px 16px 48px 16px;
+  }
+  /* Spazio in fondo per la barra di navigazione */
+  .con-navigazione #app { padding-bottom: 112px; }
+  #schermo-pin,
+  #schermo-spesa,
+  #schermo-chiusura,
+  #schermo-persona,
+  #schermo-nuova-scadenza,
+  #schermo-nuovo-prodotto,
+  #schermo-prodotto-margine,
+  #pannello-errore,
+  #pannello-conferma,
+  #pannello-in-coda {
+    max-width: 640px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .testa-pagina { margin: 4px 0 16px 0; }
+  .titolo-pagina {
+    margin: 0;
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.3px;
+  }
+  .sottotitolo-pagina {
+    margin: 4px 0 0 0;
+    font-size: 17px;
+    line-height: 1.4;
+    color: #6b5a4c;
+  }
+  .titolo-sezione {
+    margin: 24px 0 8px 0;
+    font-size: 19px;
+    font-weight: 700;
+    color: #2b1d14;
+  }
+  .titolo-gruppo {
+    margin: 24px 0 8px 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: #2b1d14;
+  }
+  .etichetta-gruppo {
+    margin: 16px 0 8px 0;
+    font-size: 17px;
+    font-weight: 600;
+    color: #6b5a4c;
+  }
+  .nota-pagina {
+    margin: 16px 0 12px 0;
+    font-size: 17px;
+    line-height: 1.4;
+    color: #6b5a4c;
+  }
+
+  .carta {
+    background: #ffffff;
+    border: 1px solid #e9e1d6;
+    border-radius: 16px;
+    padding: 16px;
+    margin: 0 0 12px 0;
+    -webkit-box-shadow: 0 1px 2px rgba(43, 29, 20, 0.05);
+    box-shadow: 0 1px 2px rgba(43, 29, 20, 0.05);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  .carta h3 { margin: 0 0 8px 0; }
+  .carta-centrata {
+    text-align: center;
+    padding: 24px 20px;
+  }
+
+  /* Bolli e cerchi con icona */
+  .bollo,
+  .cerchio-icona {
+    display: inline-block;
+    text-align: center;
+    font-size: 0;
+  }
+  .bollo {
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    border-radius: 12px;
+    background: #f4ece3;
+    color: #5e4535;
+  }
+  .bollo svg,
+  .cerchio-icona svg { vertical-align: middle; margin: 0; }
+  .cerchio-icona {
+    width: 56px;
+    height: 56px;
+    line-height: 56px;
+    margin: 0 auto 16px auto;
+    border-radius: 50%;
+  }
+  .icona-attenzione { background: #fdf3d7; color: #8a5a00; }
+  .cerchio-accento { background: #fcefe3; color: #b4561b; }
+  .cerchio-verde { background: #e7f3ec; color: #2f7a4a; }
+  .cerchio-rosso { background: #fdecea; color: #b42318; }
+
+  /* ---------------------------------------------------------------------
+     Pulsanti: primario, secondario, pericolo, positivo, link
+     --------------------------------------------------------------------- */
+  button, .bottone {
+    display: block;
+    width: 100%;
+    min-height: 52px;
+    margin: 0 0 12px 0;
+    padding: 13px 18px;
+    border: 1px solid #d3c6b6;
+    border-radius: 12px;
+    background: #ffffff;
+    color: #2b1d14;
+    font-family: inherit;
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 1.3;
+    text-align: center;
+    white-space: normal;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    cursor: pointer;
+    -webkit-appearance: none;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0.06);
+    touch-action: manipulation;
+  }
+  button:active, .bottone:active { background: #f6f0e8; }
+  button svg, .bottone svg {
+    display: inline-block;
+    vertical-align: middle;
+    margin: -3px 8px 0 0;
+  }
+  .primario, .blu {
+    background: #b4561b;
+    border-color: #b4561b;
+    color: #ffffff;
+    -webkit-box-shadow: 0 1px 2px rgba(122, 54, 12, 0.25);
+    box-shadow: 0 1px 2px rgba(122, 54, 12, 0.25);
+  }
+  .primario:active, .blu:active { background: #96460f; border-color: #96460f; }
+  .secondario, .grigio {
+    background: #ffffff;
+    border-color: #d3c6b6;
+    color: #2b1d14;
+  }
+  .pericolo, .rosso {
+    background: #b42318;
+    border-color: #b42318;
+    color: #ffffff;
+  }
+  .pericolo:active, .rosso:active { background: #912018; }
+  .verde {
+    background: #2f7a4a;
+    border-color: #2f7a4a;
+    color: #ffffff;
+  }
+  .verde:active { background: #245f39; }
+  .indietro {
+    display: inline-block;
+    width: auto;
+    max-width: 100%;
+    min-height: 52px;
+    margin: 0 0 4px -8px;
+    padding: 12px 12px 12px 4px;
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+    color: #7a360c;
+    font-size: 18px;
+    font-weight: 600;
+    text-align: left;
+  }
+  .indietro svg { margin: -3px 2px 0 0; }
+  .indietro:active { background: #efe7dd; }
+  .link-semplice {
+    display: inline-block;
+    width: auto;
+    max-width: 100%;
+    min-height: 52px;
+    margin: 8px 0 0 0;
+    padding: 12px 16px;
+    background: transparent;
+    border: 0;
+    color: #7a360c;
+    font-size: 17px;
+    font-weight: 600;
+  }
+  .link-semplice:active { background: #efe7dd; }
+  .mostra-altro {
+    display: inline-block;
+    width: auto;
+    max-width: 100%;
+    min-height: 52px;
+    margin: 4px 0 4px -12px;
+    padding: 12px;
+    border: 0;
+    background: transparent;
+    color: #7a360c;
+    font-size: 17px;
+    font-weight: 600;
+    text-align: left;
+  }
+  .mostra-altro:after { content: "\00a0\25BE"; }
+  .mostra-altro[aria-expanded="true"]:after { content: "\00a0\25B4"; }
+  .mostra-altro-campo { margin: 0 0 0 -12px; }
+  .azioni { margin-top: 24px; }
+
+  /* Focus visibile solo da tastiera (i Safari vecchi ignorano questa regola) */
+  button:focus-visible, a:focus-visible {
+    outline: 3px solid #b4561b;
+    outline-offset: 2px;
+  }
+
+  /* ---------------------------------------------------------------------
+     Barra di navigazione in basso
+     --------------------------------------------------------------------- */
+  .navigazione {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 50;
+    background: #ffffff;
+    border-top: 1px solid #e9e1d6;
+    -webkit-box-shadow: 0 -4px 16px rgba(43, 29, 20, 0.06);
+    box-shadow: 0 -4px 16px rgba(43, 29, 20, 0.06);
+  }
+  .navigazione-dentro {
+    display: table;
+    width: 100%;
+    max-width: 760px;
+    margin: 0 auto;
+  }
+  .navigazione-voce {
+    display: table-cell;
+    vertical-align: top;
+    text-align: center;
+  }
+  .navigazione button {
+    display: block;
+    width: 100%;
+    min-height: 68px;
+    margin: 0;
+    padding: 6px 2px 8px 2px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: #6b5a4c;
+    font-size: 17px;
+    font-weight: 600;
+    line-height: 1.15;
+    white-space: nowrap;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+  }
+  .navigazione button:active { background: #faf7f3; }
+  .navigazione button svg {
+    display: block;
+    margin: 0 auto 4px auto;
+    padding: 3px 14px;
+    border-radius: 15px;
+    -webkit-box-sizing: content-box;
+    box-sizing: content-box;
+  }
+  .navigazione button.attiva { color: #3a2418; }
+  .navigazione button.attiva svg { background: #f3e5d6; color: #7a360c; }
+  .navigazione-nome { display: block; }
+
+  /* ---------------------------------------------------------------------
+     Home: azioni principali e righe di stato
+     --------------------------------------------------------------------- */
+  .home-data {
+    margin: 0 0 2px 0;
+    font-size: 17px;
+    font-weight: 600;
+    color: #6b5a4c;
+  }
+  .persona {
+    margin: 8px 0 0 0;
+    font-size: 17px;
+    color: #2b1d14;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  .persona-icona {
+    display: inline-block;
+    vertical-align: middle;
+    width: 32px;
+    height: 32px;
+    line-height: 32px;
+    margin-right: 8px;
+    border-radius: 50%;
+    background: #fcefe3;
+    color: #b4561b;
+    text-align: center;
+    font-size: 0;
+  }
+  .persona-icona svg { vertical-align: middle; }
+  #home-persona-testo { vertical-align: middle; }
+  .persona .link-semplice {
+    vertical-align: middle;
+    margin: 0 0 0 4px;
+    padding: 12px;
+  }
+
+  .azioni-home-fuori { margin: 0 -12px 0 -12px; }
+  .azioni-home {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: separate;
+    border-spacing: 12px 0;
+  }
+  .azioni-home-cella {
+    display: table-cell;
+    vertical-align: top;
+  }
+  .azione-home {
+    display: block;
+    width: 100%;
+    min-height: 132px;
+    margin: 0;
+    padding: 16px;
+    border: 0;
+    border-radius: 16px;
+    color: #ffffff;
+    text-align: left;
+  }
+  .azione-spesa {
+    background: #b4561b;
+    -webkit-box-shadow: 0 1px 2px rgba(122, 54, 12, 0.3), 0 6px 16px rgba(180, 86, 27, 0.22);
+    box-shadow: 0 1px 2px rgba(122, 54, 12, 0.3), 0 6px 16px rgba(180, 86, 27, 0.22);
+  }
+  .azione-spesa:active { background: #96460f; }
+  .azione-chiusura {
+    background: #3a2418;
+    -webkit-box-shadow: 0 1px 2px rgba(43, 29, 20, 0.3), 0 6px 16px rgba(43, 29, 20, 0.18);
+    box-shadow: 0 1px 2px rgba(43, 29, 20, 0.3), 0 6px 16px rgba(43, 29, 20, 0.18);
+  }
+  .azione-chiusura:active { background: #24160e; }
+  .azione-home-icona {
+    display: block;
+    width: 44px;
+    height: 44px;
+    line-height: 44px;
+    margin: 0 0 12px 0;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.16);
+    text-align: center;
+    font-size: 0;
+  }
+  .azione-home-icona svg { margin: 0; vertical-align: middle; }
+  .azione-home-titolo {
+    display: block;
+    font-size: 19px;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+  .azione-home-sotto {
+    display: block;
+    margin-top: 4px;
+    font-size: 17px;
+    font-weight: 400;
+    line-height: 1.3;
+    color: #ffffff;
+  }
+  .azione-chiusura .azione-home-sotto { color: #eadfd3; }
+
+  /* Gruppo di righe (home, Spese, Cassa, Altro) */
+  .gruppo {
+    margin: 0 0 16px 0;
+    background: #ffffff;
+    border: 1px solid #e9e1d6;
+    border-radius: 16px;
+    overflow: hidden;
+    -webkit-box-shadow: 0 1px 2px rgba(43, 29, 20, 0.05);
+    box-shadow: 0 1px 2px rgba(43, 29, 20, 0.05);
+  }
+  .riga-menu {
+    display: block;
+    width: 100%;
+    min-height: 68px;
+    margin: 0;
+    padding: 12px 12px 12px 16px;
+    border: 0;
+    border-bottom: 1px solid #efe8df;
+    border-radius: 0;
+    background: transparent;
+    text-align: left;
+    font-weight: 400;
+  }
+  .riga-menu:last-child { border-bottom: 0; }
+  .riga-menu:active { background: #faf7f3; }
+  .riga-menu-dentro {
+    display: table;
+    width: 100%;
+  }
+  .riga-menu-icona,
+  .riga-menu-testi,
+  .riga-menu-fine,
+  .riga-menu-freccia {
+    display: table-cell;
+    vertical-align: middle;
+  }
+  .riga-menu-icona { width: 40px; font-size: 0; }
+  .riga-menu-icona svg {
+    display: block;
+    margin: 0;
+    padding: 9px;
+    border-radius: 12px;
+    background: #f4ece3;
+    color: #5e4535;
+    -webkit-box-sizing: content-box;
+    box-sizing: content-box;
+  }
+  .riga-menu-testi {
+    width: 100%;
+    padding: 0 8px 0 12px;
+  }
+  .riga-menu-titolo {
+    display: block;
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 1.3;
+    color: #2b1d14;
+  }
+  .riga-menu-sotto {
+    display: block;
+    margin-top: 2px;
+    font-size: 17px;
+    line-height: 1.35;
+    color: #6b5a4c;
+  }
+  .riga-menu-fine {
+    padding-left: 4px;
+    white-space: nowrap;
+    text-align: right;
+  }
+  .riga-menu-freccia {
+    width: 24px;
+    padding-left: 4px;
+    color: #8f7f71;
+    font-size: 0;
+  }
+  .riga-menu-freccia svg { margin: 0; }
+  .riga-menu-pericolo .riga-menu-titolo { color: #b42318; }
+  .riga-menu-pericolo .riga-menu-icona svg { background: #fdecea; color: #b42318; }
+  #spese-nuova, #cassa-chiusura { margin-bottom: 16px; }
+
+  /* Numerino (badge) e spunta «a posto» */
+  .contatore {
+    display: inline-block;
+    min-width: 28px;
+    height: 28px;
+    margin-left: 6px;
+    padding: 0 8px;
+    border-radius: 14px;
+    background: #b42318;
+    color: #ffffff;
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 28px;
+    text-align: center;
+    vertical-align: 1px;
+  }
+  .contatore-attenzione { background: #fbe7b5; color: #5c3b00; }
+  .contatore-neutro { background: #efe6db; color: #3a2418; }
+  .contatore-accento { background: #fbe7b5; color: #5c3b00; }
+  .stato-ok {
+    display: inline-block;
+    width: 28px;
+    height: 28px;
+    line-height: 28px;
+    border-radius: 50%;
+    background: #e7f3ec;
+    color: #1e5a35;
+    font-size: 17px;
+    font-weight: 700;
+    text-align: center;
+  }
+
+  /* ---------------------------------------------------------------------
+     Campi
+     --------------------------------------------------------------------- */
+  label {
+    display: block;
+    margin: 20px 0 8px 0;
+    font-size: 17px;
+    font-weight: 600;
+    line-height: 1.3;
+    color: #2b1d14;
+  }
+  .primo-campo { margin-top: 0; }
+  input[type="text"], input[type="date"], select, textarea {
+    display: block;
+    width: 100%;
+    min-height: 56px;
+    padding: 14px;
+    border: 1px solid #d3c6b6;
+    border-radius: 12px;
+    background: #ffffff;
+    color: #2b1d14;
+    font-family: inherit;
+    font-size: 18px;
+    line-height: 1.3;
+    -webkit-appearance: none;
+    -webkit-box-shadow: inset 0 1px 2px rgba(43, 29, 20, 0.04);
+    box-shadow: inset 0 1px 2px rgba(43, 29, 20, 0.04);
+  }
+  select {
+    padding-right: 44px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%236b5a4c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: 96% 50%;
+  }
+  input:focus, select:focus, textarea:focus {
+    border-color: #b4561b;
+    outline: none;
+    -webkit-box-shadow: 0 0 0 3px rgba(180, 86, 27, 0.2);
+    box-shadow: 0 0 0 3px rgba(180, 86, 27, 0.2);
+  }
+  ::-webkit-input-placeholder { color: #8f7f71; }
+  ::placeholder { color: #8f7f71; }
+  .campo-importo {
+    font-size: 26px !important;
+    font-weight: 700;
+    letter-spacing: -0.2px;
+  }
+  .etichetta-obbligatoria { color: #b42318; }
+  .campo-da-compilare { border-color: #b42318 !important; background: #fffafa !important; }
+
+  .avviso {
+    margin: 0 0 16px 0;
+    padding: 12px 16px;
+    border-radius: 12px;
+    background: #fcefe3;
+    color: #6e330c;
+    font-size: 17px;
+    line-height: 1.4;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  .avviso b { color: #5a2a09; }
+
+  /* Scelte a pillole (categorie, pagamento, frequenze) */
+  .scelte { margin: 0 0 -8px 0; }
+  .scelte button {
+    display: inline-block;
+    vertical-align: top;
+    width: auto;
+    max-width: 100%;
+    min-height: 52px;
+    margin: 0 8px 8px 0;
+    padding: 13px 18px;
+    border: 1px solid #d3c6b6;
+    border-radius: 26px;
+    background: #ffffff;
+    color: #2b1d14;
+    font-size: 18px;
+    font-weight: 500;
+    text-align: left;
+  }
+  .scelte button.scelto {
+    background: #fcefe3;
+    border-color: #b4561b;
+    color: #6e330c;
+    -webkit-box-shadow: inset 0 0 0 1px #b4561b;
+    box-shadow: inset 0 0 0 1px #b4561b;
+  }
+  .scelte button.scelto:before { content: "\2713\00a0"; }
+
+  /* Controllo segmentato (Spese/Chiusure, ordinamenti) */
+  .scelte.segmentato {
+    margin: 0 0 16px 0;
+    padding: 4px;
+    border-radius: 14px;
+    background: #ebe3d9;
+    font-size: 0;
+  }
+  .segmentato button {
+    display: inline-block;
+    vertical-align: top;
+    width: 50%;
+    min-height: 52px;
+    margin: 0;
+    padding: 12px 8px;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: #4f4034;
+    font-size: 17px;
+    font-weight: 600;
+    text-align: center;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+  }
+  .segmentato-tre button { width: 33.333%; }
+  .segmentato button.scelto {
+    background: #ffffff;
+    color: #2b1d14;
+    -webkit-box-shadow: 0 1px 3px rgba(43, 29, 20, 0.16);
+    box-shadow: 0 1px 3px rgba(43, 29, 20, 0.16);
+  }
+  .segmentato button.scelto:before { content: ""; }
+
+  /* Ricerca del fornitore: elenco di suggerimenti sotto al campo */
+  .suggerimenti {
+    margin: 8px 0 0 0;
+    border: 1px solid #d3c6b6;
+    border-radius: 12px;
+    background: #ffffff;
+    max-height: 264px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    -webkit-box-shadow: 0 4px 16px rgba(43, 29, 20, 0.08);
+    box-shadow: 0 4px 16px rgba(43, 29, 20, 0.08);
+  }
+  .suggerimenti button {
+    display: block;
+    width: 100%;
+    min-height: 52px;
+    margin: 0;
+    padding: 12px 14px;
+    border: 0;
+    border-bottom: 1px solid #efe8df;
+    border-radius: 0;
+    background: transparent;
+    color: #2b1d14;
+    font-size: 18px;
+    font-weight: 400;
+    line-height: 1.3;
+    text-align: left;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  .suggerimenti button:last-child { border-bottom: 0; }
+  .suggerimenti button:active { background: #faf7f3; }
+  .suggerimenti button.nuovo {
+    background: #fcefe3;
+    color: #6e330c;
+    font-weight: 600;
+  }
+  #fornitore-recenti { margin-top: 12px; }
+
+  /* Foto o PDF */
+  .bottone-file {
+    position: relative;
+    overflow: hidden;
+    min-height: 64px;
+    border: 1px dashed #c9b8a4;
+    background: #faf7f3;
+    padding: 16px;
+  }
+  .bottone-file-icona {
+    display: inline-block;
+    vertical-align: middle;
+    color: #b4561b;
+    margin-right: 8px;
+    font-size: 0;
+  }
+  .bottone-file-icona svg { margin: 0; }
+  .bottone-file-testo {
+    display: inline-block;
+    vertical-align: middle;
+    max-width: 100%;
+  }
+  .bottone-file input {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    font-size: 200px;
+    cursor: pointer;
+  }
+  #foto-anteprima {
+    display: block;
+    max-width: 100%;
+    max-height: 320px;
+    margin: 0 auto 12px auto;
+    border: 1px solid #e9e1d6;
+    border-radius: 12px;
+  }
+  .riquadro-file {
+    background: #faf7f3;
+    border: 1px solid #e9e1d6;
+    border-radius: 12px;
+    padding: 12px 16px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  .riquadro-file svg {
+    vertical-align: middle;
+    margin-right: 6px;
+    color: #b4561b;
+  }
+  .riquadro-file-riga { margin: 0 0 12px 0; }
+  #foto-esistente { margin: 0 0 12px 0; }
+  .riquadro-file .link-scontrino { padding-top: 4px; }
+  #foto-tolta { margin-bottom: 12px; }
+  .link-in-avviso {
+    margin: 4px 0 0 -12px;
+    padding: 12px;
+    color: #6e330c;
+    text-decoration: underline;
+  }
+
+  /* Totale della chiusura cassa */
+  .totale-grande {
+    margin: 24px 0 0 0;
+    padding: 16px 20px;
+    border-radius: 14px;
+    background: #3a2418;
+    color: #ffffff;
+  }
+  .totale-grande-etichetta {
+    display: block;
+    font-size: 17px;
+    color: #e6d5c3;
+  }
+  .totale-grande-cifra {
+    display: block;
+    font-size: 34px;
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.3px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+
+  /* Riquadro di stato (quadratura, anteprima del margine) */
+  .quadratura {
+    margin: 12px 0 0 0;
+    padding: 12px 16px;
+    border-radius: 12px;
+    border-left: 4px solid #2f7a4a;
+    background: #e7f3ec;
+    color: #1e5a35;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  .quadratura-eccedenza { border-left-color: #8a5a00; background: #fdf3d7; color: #6e4700; }
+  .quadratura-ammanco { border-left-color: #b42318; background: #fdecea; color: #912018; }
+  .quadratura-titolo {
+    display: block;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+  .quadratura-testo {
+    display: block;
+    margin-top: 4px;
+    font-size: 17px;
+    line-height: 1.4;
+  }
+
+  /* ---------------------------------------------------------------------
+     Avvio e PIN
+     --------------------------------------------------------------------- */
+  .accesso {
+    max-width: 400px;
+    margin: 16px auto;
+    text-align: center;
+  }
+  .accesso h1 { margin: 0 0 4px 0; font-size: 26px; }
+  .accesso-logo {
+    display: inline-block;
+    width: 64px;
+    height: 64px;
+    line-height: 64px;
+    margin: 8px 0 16px 0;
+    border-radius: 18px;
+    background: #b4561b;
+    color: #ffffff;
+    font-size: 0;
+    text-align: center;
+    -webkit-box-shadow: 0 6px 16px rgba(180, 86, 27, 0.25);
+    box-shadow: 0 6px 16px rgba(180, 86, 27, 0.25);
+  }
+  .accesso-logo svg { vertical-align: middle; }
+  .pin-puntini {
+    text-align: center;
+    font-size: 30px;
+    letter-spacing: 16px;
+    padding-left: 16px;
+    color: #3a2418;
+    margin: 0 0 4px 0;
+    min-height: 48px;
+    line-height: 48px;
+  }
+  .messaggio-pin {
+    min-height: 26px;
+    font-size: 17px;
+    font-weight: 600;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  .tastierino { margin: 8px -1.5% 0 -1.5%; }
+  .tastierino button {
+    display: inline-block;
+    vertical-align: top;
+    width: 30.33%;
+    margin: 0 1.5% 12px 1.5%;
+    min-height: 64px;
+    padding: 12px 4px;
+    font-size: 26px;
+    font-weight: 500;
+    background: #ffffff;
+    border: 1px solid #e2d8cb;
+    border-radius: 14px;
+    -webkit-box-shadow: 0 1px 2px rgba(43, 29, 20, 0.06);
+    box-shadow: 0 1px 2px rgba(43, 29, 20, 0.06);
+  }
+  .tastierino button svg { margin: 0; }
+  .tastierino button.tasto-servizio {
+    background: transparent;
+    border-color: transparent;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+    font-size: 18px;
+    font-weight: 600;
+    color: #6b5a4c;
+  }
+
+  /* ---------------------------------------------------------------------
+     Riepilogo
+     --------------------------------------------------------------------- */
+  .navigazione-mese {
+    margin: 0 0 12px 0;
+    padding: 4px;
+    border-radius: 16px;
+    background: #ffffff;
+    border: 1px solid #e9e1d6;
+  }
+  .navigazione-riga {
+    display: table;
+    width: 100%;
+  }
+  .navigazione-cella {
+    display: table-cell;
+    vertical-align: middle;
+    width: 1%;
+  }
+  .navigazione-centro {
+    width: 100%;
+    text-align: center;
+    padding: 0 8px;
+  }
+  .navigazione-etichetta {
+    display: block;
+    font-size: 17px;
+    color: #6b5a4c;
+    line-height: 1.2;
+  }
+  #riepilogo-mese {
+    display: block;
+    font-size: 20px;
+    font-weight: 700;
+    color: #2b1d14;
+    line-height: 1.25;
+  }
+  .tasto-mese {
+    width: 52px;
+    height: 52px;
+    min-height: 52px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 12px;
+    background: #faf7f3;
+    color: #3a2418;
+    font-size: 0;
+    line-height: 52px;
+  }
+  .tasto-mese svg { margin: 0; }
+
+  /* Numeri del mese: su telefono una carta con tre righe, su tablet tre box */
+  .numeri {
+    margin: 0 0 16px 0;
+    background: #ffffff;
+    border: 1px solid #e9e1d6;
+    border-radius: 16px;
+    -webkit-box-shadow: 0 1px 2px rgba(43, 29, 20, 0.05);
+    box-shadow: 0 1px 2px rgba(43, 29, 20, 0.05);
+  }
+  .numero {
+    display: block;
+    overflow: hidden;
+    padding: 12px 16px;
+    border-bottom: 1px solid #efe8df;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  .numero:last-child { border-bottom: 0; }
+  .numero-etichetta {
+    display: block;
+    font-size: 17px;
+    font-weight: 600;
+    color: #6b5a4c;
+  }
+  .numero-etichetta:before {
+    content: "";
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    margin: 0 8px 1px 0;
+    border-radius: 50%;
+    background: #3a2418;
+  }
+  .numero-spese .numero-etichetta:before { background: #b4561b; }
+  .numero-incassi .numero-etichetta:before { background: #2f7a4a; }
+  .numero-differenza.negativo .numero-etichetta:before { background: #b42318; }
+  .numero-differenza.positivo .numero-etichetta:before { background: #2f7a4a; }
+  .numero-cifra {
+    float: right;
+    margin: 4px 0 0 12px;
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.2px;
+    color: #2b1d14;
+    white-space: nowrap;
+  }
+  .numero-differenza.positivo .numero-cifra { color: #1e5a35; }
+  .numero-differenza.negativo .numero-cifra { color: #b42318; }
+  .numero-nota {
+    display: block;
+    font-size: 17px;
+    color: #6b5a4c;
+  }
+
+  table.totali {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 17px;
+  }
+  table.totali td {
+    padding: 12px 0;
+    border-bottom: 1px solid #efe8df;
+    vertical-align: top;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  table.totali tr:last-child td { border-bottom: none; }
+  table.totali td.cifra {
+    text-align: right;
+    font-weight: 600;
+    white-space: nowrap;
+    padding-left: 12px;
+  }
+  table.totali tr.evidenza td {
+    font-size: 18px;
+    font-weight: 700;
+    border-bottom: none;
+    border-top: 1px solid #3a2418;
+    padding-top: 12px;
+  }
+
+  /* Sezioni a fisarmonica */
+  .carta.sezione { padding: 0; margin-bottom: 8px; overflow: hidden; }
+  .sezione-h { margin: 0; font-size: 18px; }
+  .sezione-testa {
+    display: block;
+    width: 100%;
+    min-height: 68px;
+    margin: 0;
+    padding: 12px 12px 12px 16px;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    text-align: left;
+    font-weight: 400;
+  }
+  .sezione-testa:active { background: #faf7f3; }
+  .sezione-riga { display: table; width: 100%; }
+  .sezione-icona,
+  .sezione-testi,
+  .sezione-freccia { display: table-cell; vertical-align: middle; }
+  .sezione-icona { width: 40px; }
+  .sezione-icona svg { margin: 0; }
+  .sezione-testi { padding: 0 8px 0 12px; }
+  .sezione-titolo {
+    display: block;
+    font-size: 18px;
+    font-weight: 600;
+    color: #2b1d14;
+    line-height: 1.3;
+  }
+  .sezione-riassunto {
+    display: block;
+    margin-top: 2px;
+    font-size: 17px;
+    font-weight: 400;
+    color: #6b5a4c;
+    line-height: 1.35;
+  }
+  .sezione-freccia { width: 28px; text-align: right; color: #8f7f71; }
+  .sezione-freccia svg {
+    margin: 0;
+    -webkit-transition: -webkit-transform 0.15s;
+    transition: transform 0.15s;
+  }
+  .sezione-aperta .sezione-freccia svg {
+    -webkit-transform: rotate(180deg);
+    transform: rotate(180deg);
+  }
+  .sezione-corpo {
+    padding: 4px 16px 16px 16px;
+    border-top: 1px solid #efe8df;
+  }
+  .sotto-titolo {
+    margin: 24px 0 8px 0;
+    font-size: 18px;
+    color: #2b1d14;
+    line-height: 1.25;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  .sezione-corpo .sotto-titolo:first-child { margin-top: 16px; }
+  .sezione-corpo > p:first-child { margin-top: 16px; }
+  .riga-dafare {
+    min-height: 56px;
+    margin: 0 0 8px 0;
+    padding: 12px 12px 12px 16px;
+    background: #ffffff;
+    border: 1px solid #e9e1d6;
+    text-align: left;
+    font-weight: 600;
+  }
+  .riga-dafare-dentro { display: table; width: 100%; }
+  .riga-dafare-testo,
+  .riga-dafare-freccia { display: table-cell; vertical-align: middle; }
+  .riga-dafare-testo { font-size: 18px; }
+  .riga-dafare-freccia { width: 28px; text-align: right; color: #8f7f71; }
+  .riga-dafare-freccia svg { margin: 0; }
+  #riepilogo-dafare-voci { margin-top: 12px; }
+  #riepilogo-da-categorizzare { margin-top: 16px; }
+  #riepilogo-da-categorizzare .avviso { margin-bottom: 12px; }
+
+  /* Ultime spese dentro la sezione */
+  .riga-spesa {
+    padding: 12px 0;
+    border-bottom: 1px solid #efe8df;
+  }
+  .riga-spesa:first-child { padding-top: 4px; }
+  .riga-spesa:last-child { border-bottom: none; padding-bottom: 0; }
+
+  /* ---------------------------------------------------------------------
+     Voci degli elenchi (spese, chiusure, scadenze, fornitori, coda…)
+     --------------------------------------------------------------------- */
+  .voce {
+    background: #ffffff;
+    border: 1px solid #e9e1d6;
+    border-radius: 14px;
+    padding: 16px;
+    margin: 0 0 8px 0;
+    -webkit-box-shadow: 0 1px 2px rgba(43, 29, 20, 0.04);
+    box-shadow: 0 1px 2px rgba(43, 29, 20, 0.04);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  /* Solo le voci con un problema hanno la barra rossa a sinistra */
+  .voce.da-controllare,
+  .voce-scadenza.scaduta,
+  .voce-fornitore.scaduto,
+  .voce-fattura.scaduta,
+  .voce-margine.sotto-soglia,
+  .voce-haccp.fuori-range {
+    border-left: 4px solid #b42318;
+    padding-left: 13px;
+    background: #fffbfa;
+  }
+  .riga-spesa-alto {
+    display: table;
+    width: 100%;
+    table-layout: auto;
+  }
+  .riga-spesa-testo,
+  .riga-spesa-importo {
+    display: table-cell;
+    vertical-align: top;
+  }
+  .riga-spesa-testo {
+    width: 100%;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  .riga-spesa-importo {
+    padding-left: 12px;
+    text-align: right;
+    white-space: nowrap;
+    font-size: 19px;
+    font-weight: 700;
+    color: #2b1d14;
+  }
+  .voce-titolo {
+    display: block;
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 1.3;
+    color: #2b1d14;
+  }
+  .riga-spesa-fornitore {
+    display: block;
+    font-weight: 600;
+    font-size: 18px;
+    color: #2b1d14;
+  }
+  .riga-spesa-info,
+  .riga-spesa-nota {
+    display: block;
+    margin-top: 2px;
+    font-size: 17px;
+    line-height: 1.4;
+    color: #6b5a4c;
+  }
+  .riga-spesa-info.positivo { color: #1e5a35; }
+  .riga-spesa-nota { font-style: italic; }
+  .sotto-importo {
+    display: block;
+    font-size: 17px;
+    font-weight: 400;
+    color: #6b5a4c;
+  }
+  .link-scontrino {
+    display: inline-block;
+    padding: 8px 0 0 0;
+    font-size: 17px;
+    font-weight: 600;
+    color: #7a360c;
+  }
+  .voce-problema {
+    display: block;
+    margin: 8px 0 0 0;
+    padding: 8px 12px;
+    border-radius: 10px;
+    background: #fdecea;
+    color: #912018;
+    font-size: 17px;
+    font-weight: 600;
+  }
+  .voce-azioni { margin: 0; font-size: 0; }
+  .bottone-voce {
+    display: inline-block;
+    vertical-align: top;
+    width: auto;
+    max-width: 100%;
+    min-height: 52px;
+    margin: 12px 8px 0 0;
+    padding: 12px 16px;
+    border-radius: 12px;
+    font-size: 17px;
+  }
+  .bottone-voce svg { margin-right: 6px; }
+  .bottone-elimina {
+    background: #ffffff;
+    border-color: #efc9c4;
+    color: #b42318;
+  }
+  .bottone-elimina:active { background: #fdecea; }
+  /* «Segna pagata» ripetuto in ogni riga: verde ma leggero (il verde pieno resta per i moduli) */
+  .voce .verde.bottone-voce {
+    background: #ffffff;
+    border-color: #a9d3b8;
+    color: #1e5a35;
+  }
+  .voce .verde.bottone-voce:active { background: #e7f3ec; }
+  .bottone-largo {
+    display: block;
+    width: 100%;
+  }
+  .lista-vuota,
+  .vuoto {
+    margin: 0 0 16px 0;
+    padding: 76px 16px 24px 16px;
+    background-color: #ffffff;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 24 24' fill='none' stroke='%238f7f71' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 13l3-8h12l3 8v6H3z'/%3E%3Cpath d='M3 13h5l1 2h6l1-2h5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: 50% 24px;
+    border: 1px dashed #d9cdbf;
+    border-radius: 16px;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+    color: #4f4034;
+    font-size: 17px;
+    font-weight: 500;
+    text-align: center;
+  }
+  .lista-vuota.positivo {
+    color: #1e5a35;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 24 24' fill='none' stroke='%232f7a4a' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M8 12.5l2.8 2.8L16 10'/%3E%3C/svg%3E");
+  }
+
+  /* Pillole di stato */
+  .pillola {
+    display: inline-block;
+    max-width: 100%;
+    margin: 8px 6px 0 0;
+    padding: 3px 10px;
+    border-radius: 14px;
+    font-size: 17px;
+    font-weight: 600;
+    line-height: 1.35;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  .pillola-rossa { background: #fdecea; color: #912018; }
+  .pillola-accento { background: #fdf3d7; color: #6e4700; }
+  .pillola-neutra { background: #f1ebe4; color: #4f4034; }
+  .pillola-verde { background: #e7f3ec; color: #1e5a35; }
+
+  /* Riassunto in cima a un elenco (risultati, scadenze, fornitori…) */
+  .riassunto {
+    margin: 0 0 16px 0;
+    padding: 16px;
+    background: #ffffff;
+    border: 1px solid #e9e1d6;
+    border-radius: 16px;
+    -webkit-box-shadow: 0 1px 2px rgba(43, 29, 20, 0.05);
+    box-shadow: 0 1px 2px rgba(43, 29, 20, 0.05);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  .riassunto:empty { display: none; }
+  .riassunto-interno.riassunto-incassi {
+    background: #f3f9f5;
+    border-color: #d3e8da;
+  }
+  .riassunto-etichetta {
+    display: block;
+    font-size: 17px;
+    font-weight: 600;
+    color: #6b5a4c;
+  }
+  .riassunto-etichetta.positivo { color: #1e5a35; }
+  .riassunto-etichetta.negativo { color: #b42318; }
+  .riassunto-cifra {
+    display: block;
+    margin: 4px 0 0 0;
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.3px;
+    color: #2b1d14;
+  }
+  .riassunto-nota {
+    display: block;
+    margin: 4px 0 0 0;
+    font-size: 17px;
+    color: #6b5a4c;
+  }
+
+  /* ---------------------------------------------------------------------
+     Cerca e modifica
+     --------------------------------------------------------------------- */
+  .carta-filtri { margin-bottom: 16px; }
+  .riga-cerca {
+    display: table;
+    width: 100%;
+  }
+  .riga-cerca-campo,
+  .riga-cerca-pulsante {
+    display: table-cell;
+    vertical-align: top;
+  }
+  .riga-cerca-campo { width: 100%; }
+  .riga-cerca-pulsante { padding-left: 8px; }
+  .riga-cerca-pulsante button {
+    width: auto;
+    min-height: 56px;
+    margin: 0;
+    padding: 12px 16px;
+    white-space: nowrap;
+  }
+  #elenco-azzera { margin: 4px 0 0 -16px; }
+  #elenco-filtri-apri { margin: 8px 0 0 -12px; }
+  #elenco-filtri { padding-top: 8px; }
+
+  /* ---------------------------------------------------------------------
+     Scadenze
+     --------------------------------------------------------------------- */
+  #scadenze-nuova { margin-top: 16px; }
+  #scadenze-fisse { margin-bottom: 0; }
+  #scadenze-fisse + .piccolo { margin: 8px 0 0 0; }
+  .voce-fissa label { margin-top: 16px; }
+  .voce-fissa .scelta-singola { margin-top: 16px; }
+  .scelta-singola { margin-top: 24px; }
+  .scelte + .piccolo { margin-top: 16px; }
+  #sf-torna { margin-top: 8px; }
+
+  /* ---------------------------------------------------------------------
+     Da ordinare
+     --------------------------------------------------------------------- */
+  .ordine-fornitore h3 { margin: 0; }
+  .ordine-testa { display: table; width: 100%; margin: 0 0 4px 0; }
+  .ordine-testa-nome,
+  .ordine-testa-piu { display: table-cell; vertical-align: middle; }
+  .ordine-testa-nome { width: 100%; word-wrap: break-word; overflow-wrap: break-word; }
+  .ordine-testa-piu { padding-left: 8px; }
+  .ordine-fornitore button.aggiungi-rapido {
+    display: inline-block;
+    width: auto;
+    min-height: 52px;
+    margin: 0;
+    padding: 8px 14px 8px 12px;
+    border-radius: 12px;
+    font-size: 17px;
+    white-space: nowrap;
+  }
+  .aggiungi-rapido svg { margin-right: 4px; vertical-align: -3px; }
+  .aggiungi-pannello { margin: 8px 0 4px 0; padding: 12px 0 4px 0; border-top: 1px solid #efe8df; }
+  .aggiungi-pannello input { margin: 0; }
+  .suggerimenti-prodotti { display: none; max-height: 364px; }
+  .suggerimenti-prodotti button.in-lista { color: #6e330c; background: #fcefe3; }
+  .etichetta-rapida { margin: 12px 0 4px 0; }
+  #rapido-pillole { margin-top: 4px; }
+  button.pillola-prodotto {
+    display: inline-block;
+    width: auto;
+    max-width: 100%;
+    min-height: 52px;
+    margin: 0 8px 8px 0;
+    padding: 10px 16px;
+    border: 1px solid #e2d8cb;
+    border-radius: 24px;
+    background: #ffffff;
+    color: #2b1d14;
+    font-size: 17px;
+    font-weight: 400;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  #rapido-fatto { margin: 12px 0 8px 0; }
+  .riga-prodotto.evidenziata { background: #fcefe3; }
+  @media (max-height: 640px) {
+    .suggerimenti-prodotti { max-height: 208px; }
+  }
+  .riga-prodotto {
+    padding: 12px 0;
+    border-bottom: 1px solid #efe8df;
+  }
+  .riga-prodotto-alto {
+    display: table;
+    width: 100%;
+  }
+  .riga-prodotto-nome,
+  .riga-prodotto-togli {
+    display: table-cell;
+    vertical-align: top;
+  }
+  .riga-prodotto-nome {
+    width: 100%;
+    font-size: 18px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  .riga-prodotto-nome b { display: block; color: #2b1d14; }
+  .riga-prodotto-togli { padding-left: 8px; }
+  .riga-prodotto .togli {
+    display: inline-block;
+    width: auto;
+    min-height: 52px;
+    margin: 0;
+    padding: 12px 14px 12px 12px;
+    border-radius: 12px;
+    font-size: 17px;
+    white-space: nowrap;
+  }
+  .riga-prodotto .togli svg { margin-right: 4px; }
+  .quantita {
+    display: table;
+    width: 100%;
+    margin: 8px 0 0 0;
+    background: #faf7f3;
+    border-radius: 14px;
+  }
+  .quantita-tasto,
+  .quantita-valore {
+    display: table-cell;
+    vertical-align: middle;
+  }
+  .quantita-tasto { width: 56px; }
+  .tasto-quantita {
+    width: 56px;
+    height: 56px;
+    min-height: 56px;
+    margin: 0;
+    padding: 0;
+    border-radius: 14px;
+    background: #ffffff;
+    font-size: 26px;
+    line-height: 1;
+  }
+  .quantita-valore {
+    padding: 0 8px;
+    text-align: center;
+  }
+  .quantita .valore {
+    font-size: 19px;
+    font-weight: 700;
+    color: #2b1d14;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  .nota-fornitore {
+    margin: 12px 0 0 0;
+    font-size: 17px;
+    color: #6b5a4c;
+  }
+  a.bottone {
+    margin-top: 16px;
+    text-decoration: none;
+  }
+  .ordine-fornitore .bottone-largo { margin-top: 0; }
+  #ordini-cerca { margin: 4px 0 4px 0; }
+  .gruppo-prodotti {
+    margin: 16px 0 8px 0;
+    font-size: 17px;
+    font-weight: 600;
+    color: #6b5a4c;
+  }
+  button.prodotto {
+    min-height: 52px;
+    margin: 0 0 8px 0;
+    padding: 12px 16px;
+    border: 1px solid #e2d8cb;
+    border-radius: 12px;
+    background: #ffffff;
+    font-size: 18px;
+    font-weight: 400;
+    text-align: left;
+  }
+  button.prodotto.scelto {
+    background: #fcefe3;
+    border-color: #b4561b;
+    color: #6e330c;
+    font-weight: 600;
+  }
+
+  /* ---------------------------------------------------------------------
+     Budget per categoria (Riepilogo)
+     --------------------------------------------------------------------- */
+  .riga-budget {
+    padding: 0 0 12px 0;
+    margin: 0 0 12px 0;
+    border-bottom: 1px solid #efe8df;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  .riga-budget.ultima { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+  .riga-budget-nome { font-size: 18px; font-weight: 600; color: #2b1d14; }
+  .riga-budget .pillola { margin: 0 0 0 6px; vertical-align: 1px; }
+  .barra-budget {
+    height: 10px;
+    margin: 8px 0 6px 0;
+    border-radius: 5px;
+    background: #efe8df;
+    overflow: hidden;
+  }
+  .barra-budget-pieno {
+    height: 10px;
+    border-radius: 5px;
+  }
+  .budget-ok { background: #2f7a4a; }
+  .budget-attenzione { background: #c48a00; }
+  .budget-superato { background: #b42318; }
+  .riga-budget-cifre { display: block; font-size: 17px; color: #6b5a4c; }
+
+  /* ---------------------------------------------------------------------
+     Fornitori, versamenti e prelievi, margini
+     --------------------------------------------------------------------- */
+  #fornitore-totali { margin: 0; }
+  #fornitore-torna { margin-top: 8px; }
+  .contante-cifra {
+    display: block;
+    margin: 0 0 8px 0;
+    font-size: 34px;
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.3px;
+    color: #1e5a35;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  .contante-cifra.negativo { color: #b42318; }
+  #movimento-aiuto { margin-top: 12px; }
+  .voce-margine .riga-spesa-importo .negativo { color: #b42318; }
+  #margini-nuovo { margin-top: 8px; }
+  #pm-anteprima { margin-top: 24px; }
+
+  /* ---------------------------------------------------------------------
+     Controlli HACCP
+     --------------------------------------------------------------------- */
+  .riga-persona {
+    margin: 4px 0 0 0;
+    font-size: 17px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  .riga-persona .link-semplice {
+    margin: 0 0 0 -4px;
+    padding: 12px;
+    vertical-align: middle;
+  }
+  .voce-haccp .riga-spesa-info { margin-top: 4px; }
+  .riga-temperatura {
+    display: table;
+    width: 100%;
+    margin: 12px 0 0 0;
+  }
+  .riga-temperatura-campo,
+  .riga-temperatura-segno {
+    display: table-cell;
+    vertical-align: middle;
+  }
+  .riga-temperatura-campo { width: 100%; }
+  .riga-temperatura-segno { padding-left: 8px; }
+  .tasto-segno {
+    width: auto;
+    min-width: 64px;
+    min-height: 56px;
+    margin: 0;
+    padding: 12px;
+    border-radius: 12px;
+    background: #faf7f3;
+    font-size: 20px;
+    white-space: nowrap;
+  }
+  .campo-temperatura {
+    font-size: 26px !important;
+    font-weight: 700;
+  }
+  .campo-temperatura.fuori {
+    border-color: #b42318;
+    background: #fffafa;
+    color: #912018;
+  }
+  .avviso-fuori {
+    display: block;
+    margin: 8px 0 0 0;
+    padding: 8px 12px;
+    border-radius: 10px;
+    background: #fdecea;
+    color: #912018;
+    font-size: 17px;
+    font-weight: 600;
+  }
+  .voce-haccp label { margin-top: 12px; }
+  .voce-haccp .bottone-largo { margin-top: 12px; }
+  .voce-haccp input[type="text"] { margin-top: 12px; }
+  .voce-haccp label + input[type="text"],
+  .riga-temperatura input[type="text"] { margin-top: 0; }
+  #haccp-pdf-esito { margin-top: 4px; }
+
+  /* ---------------------------------------------------------------------
+     Grafici del riepilogo (solo div e CSS: niente librerie)
+     --------------------------------------------------------------------- */
+  .nota-grafico { margin: 0 0 12px 0; }
+  .legenda {
+    margin: 0 0 12px 0;
+    font-size: 17px;
+    font-weight: 600;
+    color: #6b5a4c;
+  }
+  .legenda-voce {
+    display: inline-block;
+    margin-right: 16px;
+  }
+  .chiave {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    margin: 0 6px 2px 0;
+    border-radius: 3px;
+    vertical-align: middle;
+  }
+  .colore-incassi { background: #2f7a4a; }
+  .colore-spese { background: #b4561b; }
+  .riga-barra {
+    margin: 0 0 12px 0;
+    font-size: 17px;
+  }
+  .barra {
+    height: 10px;
+    margin-top: 4px;
+    border-radius: 0 5px 5px 0;
+  }
+  table.totali .barra { margin-top: 6px; }
+  .blocco-confronto {
+    margin: 0 0 12px 0;
+    padding: 0 0 12px 0;
+    border-bottom: 1px solid #efe8df;
+  }
+  .blocco-confronto.ultimo {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+  }
+  .blocco-confronto b { font-size: 18px; color: #2b1d14; }
+  .blocco-confronto .piccolo { display: inline-block; margin: 0 0 6px 0; }
+  .variazione {
+    display: block;
+    font-size: 17px;
+    color: #6b5a4c;
+  }
+  .scala {
+    margin: 0 0 4px 0;
+    font-size: 17px;
+    color: #6b5a4c;
+  }
+  .colonne {
+    position: relative;
+    height: 150px;
+    border-top: 1px dashed #e2d8cb;
+    border-bottom: 1px solid #c9b8a4;
+    white-space: nowrap;
+    font-size: 0;
+  }
+  .colonne .mese {
+    display: inline-block;
+    position: relative;
+    width: 8.33%;
+    height: 100%;
+    vertical-align: bottom;
+    border-radius: 6px 6px 0 0;
+    cursor: pointer;
+  }
+  .colonne .mese.scelto { background: #f6ebdf; }
+  .colonne .coppia-barre {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    text-align: center;
+    line-height: 0;
+  }
+  .colonne .barra-v {
+    display: inline-block;
+    vertical-align: bottom;
+    width: 38%;
+    max-width: 12px;
+    margin: 0 1px;
+    border-radius: 3px 3px 0 0;
+  }
+  /* Unica eccezione ai 17px: le sigle dei 12 mesi sotto il grafico */
+  .etichette-colonne {
+    white-space: nowrap;
+    font-size: 0;
+  }
+  .etichette-colonne span {
+    display: inline-block;
+    width: 8.33%;
+    padding-top: 4px;
+    overflow: hidden;
+    text-align: center;
+    font-size: 13px;
+    color: #6b5a4c;
+    cursor: pointer;
+  }
+  .etichette-colonne span.scelto { font-weight: 700; color: #2b1d14; }
+  .dettaglio-grafico {
+    margin: 12px 0 0 0;
+    padding: 12px 16px;
+    border-radius: 12px;
+    background: #faf7f3;
+    font-size: 17px;
+  }
+  #grafico-mesi-numeri {
+    margin: 4px 0 0 -16px;
+    text-align: left;
+  }
+  #tabella-mesi { margin-top: 4px; }
+
+  /* ---------------------------------------------------------------------
+     Barra della coda offline
+     --------------------------------------------------------------------- */
+  .barra-coda {
+    margin: 0 0 16px 0;
+    padding: 12px 16px 4px 16px;
+    background: #fffaf3;
+    border: 1px solid #f1dcc6;
+    border-radius: 16px;
+  }
+  .barra-coda.da-controllare {
+    background: #fffaf9;
+    border-color: #f3cdc8;
+  }
+  .barra-coda-riga {
+    display: table;
+    width: 100%;
+    margin: 0 0 8px 0;
+  }
+  .barra-coda-icona,
+  .barra-coda p {
+    display: table-cell;
+    vertical-align: middle;
+  }
+  .barra-coda-icona {
+    width: 36px;
+    color: #b4561b;
+    font-size: 0;
+  }
+  .barra-coda.da-controllare .barra-coda-icona { color: #b42318; }
+  .barra-coda p {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #2b1d14;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  .barra-coda-pulsanti button {
+    display: inline-block;
+    vertical-align: top;
+    width: auto;
+    max-width: 100%;
+    min-height: 52px;
+    margin: 0 8px 12px 0;
+    padding: 12px 18px;
+    font-size: 17px;
+  }
+
+  /* ---------------------------------------------------------------------
+     Riepilogo: «Spese coperte dai ricavi»
+     --------------------------------------------------------------------- */
+  .cop-periodo {
+    margin: 4px 0 16px 0;
+    padding: 4px;
+    background: #faf7f3;
+    border: 1px solid #e9e1d6;
+    border-radius: 12px;
+  }
+  .cop-etichetta {
+    display: block;
+    font-size: 20px;
+    font-weight: 700;
+    color: #2b1d14;
+    line-height: 1.25;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  .cop-pillole { margin-bottom: 4px; }
+  .cop-personalizzato { margin: 16px 0 0 0; }
+  .cop-personalizzato label:first-child { margin-top: 0; }
+  .cop-avviso { margin: 12px 0 0 0; }
+  .cop-contenuto { margin: 24px 0 0 0; }
+  .cop-riquadro {
+    margin: 0 0 12px 0;
+    padding: 4px 16px 16px 16px;
+    background: #ffffff;
+    border: 1px solid #e9e1d6;
+    border-radius: 16px;
+    -webkit-box-shadow: 0 1px 2px rgba(43, 29, 20, 0.05);
+    box-shadow: 0 1px 2px rgba(43, 29, 20, 0.05);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  .cop-riquadro table.totali td.cifra { padding-left: 8px; }
+  .cop-vista { margin-top: 16px; }
+  .cop-elenco { margin: 4px 0 0 0; }
+  .cop-elenco .piccolo { margin: 16px 0 12px 0; }
+  .cop-riga {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+  }
+  .cop-riga td {
+    padding: 0;
+    vertical-align: top;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  .cop-sinistra { padding-right: 8px; }
+  .cop-riga td.cop-pieno { padding: 0; }
+  td.cop-importo {
+    width: 128px;
+    text-align: right;
+    white-space: nowrap;
+    font-size: 18px;
+    font-weight: 700;
+    color: #2b1d14;
+    font-variant-numeric: tabular-nums;
+    -webkit-font-feature-settings: "tnum";
+    font-feature-settings: "tnum";
+  }
+  .cop-data,
+  .cop-sub,
+  .cop-esito {
+    display: block;
+    font-size: 17px;
+    font-weight: 400;
+    color: #6b5a4c;
+    line-height: 1.4;
+  }
+  .cop-nome {
+    display: block;
+    font-size: 18px;
+    font-weight: 700;
+    color: #2b1d14;
+    line-height: 1.3;
+  }
+  .cop-manca {
+    display: block;
+    margin: 8px 0 0 0;
+    padding: 4px 12px;
+    background: #fdf3d7;
+    border-radius: 8px;
+    font-size: 17px;
+    color: #5c3c00;
+  }
+  .cop-spesa {
+    margin: 12px 0 0 0;
+    padding: 12px 16px;
+    background: #ffffff;
+    border: 1px solid #e9e1d6;
+    border-radius: 12px;
+    -webkit-box-shadow: 0 1px 2px rgba(43, 29, 20, 0.05);
+    box-shadow: 0 1px 2px rgba(43, 29, 20, 0.05);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  .cop-elenco .cop-spesa:first-child { margin-top: 0; }
+  .cop-ricavi,
+  .cop-nastrino {
+    margin: 4px 0 0 12px;
+    padding: 8px 16px;
+    border-radius: 12px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  .cop-ricavi { background: #e7f3ec; border: 1px solid #cfe5d7; }
+  .cop-ricavi .cop-nome,
+  .cop-ricavi td.cop-importo,
+  .cop-ricavi .cop-sub,
+  .cop-ricavi .cop-data { color: #1e5a35; }
+  /* Spesa ancora da coprire: è un problema, quindi rosso tenue con la barra a sinistra */
+  .cop-nastrino.cop-aperta { background: #fdecea; border: 1px solid #f3cdc8; border-left: 4px solid #b42318; }
+  .cop-nastrino.cop-aperta .cop-nome,
+  .cop-nastrino.cop-aperta .cop-sub,
+  .cop-nastrino.cop-aperta td.cop-importo { color: #912018; }
+  .cop-nastrino.cop-coperta { background: #e7f3ec; border: 1px solid #cfe5d7; }
+  .cop-nastrino.cop-coperta .cop-nome,
+  .cop-nastrino.cop-coperta .cop-sub,
+  .cop-nastrino.cop-coperta td.cop-importo { color: #1e5a35; }
+  .cop-mese {
+    padding: 12px 0;
+    border-bottom: 1px solid #efe8df;
+  }
+  .cop-mese:last-of-type { border-bottom: none; }
+  td.cop-importo.positivo,
+  .cop-esito.positivo { color: #1e5a35; }
+  td.cop-importo.negativo,
+  .cop-esito.negativo { color: #b42318; }
+
+  /* ---------------------------------------------------------------------
+     Pannelli: caricamento (scheletro), errore, conferma, salvato
+     --------------------------------------------------------------------- */
+  .pannello {
+    display: none;
+    padding: 8px 0 24px 0;
+  }
+  .pannello .messaggio {
+    font-size: 18px;
+    margin: 0 0 24px 0;
+    color: #2b1d14;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  .banner { border-color: #e9e1d6; }
+  .banner-errore { border-color: #f3cdc8; }
+  #pannello-errore .messaggio { font-weight: 600; }
+  #errore-riprova { min-height: 56px; }
+
+  .attesa-riga {
+    margin: 4px 0 16px 0;
+    font-size: 17px;
+    color: #6b5a4c;
+  }
+  .pannello .attesa-riga .messaggio {
+    display: inline;
+    margin: 0;
+    font-size: 17px;
+    color: #6b5a4c;
+    vertical-align: middle;
+  }
+  .scheletro-riga,
+  .scheletro-blocco {
+    display: block;
+    background: #ebe3d9;
+    border-radius: 8px;
+    -webkit-animation: pulsa 1.4s ease-in-out infinite;
+    animation: pulsa 1.4s ease-in-out infinite;
+  }
+  .scheletro-titolo { width: 55%; height: 32px; margin: 0 0 12px 0; }
+  .scheletro-corta { width: 80%; height: 18px; margin: 0 0 24px 0; }
+  .scheletro-blocco { height: 92px; margin: 0 0 12px 0; border-radius: 16px; }
+  .scheletro-basso { height: 64px; }
+  @-webkit-keyframes pulsa {
+    0% { opacity: 1; }
+    50% { opacity: 0.45; }
+    100% { opacity: 1; }
+  }
+  @keyframes pulsa {
+    0% { opacity: 1; }
+    50% { opacity: 0.45; }
+    100% { opacity: 1; }
+  }
+
+  /* Conferma «Salvato ✓»: piccola e discreta */
+  .salvato {
+    max-width: 360px;
+    margin: 48px auto 0 auto;
+    padding: 12px 24px 12px 12px;
+    background: #ffffff;
+    border: 1px solid #cfe5d7;
+    border-radius: 32px;
+    text-align: left;
+    -webkit-box-shadow: 0 6px 20px rgba(43, 29, 20, 0.1);
+    box-shadow: 0 6px 20px rgba(43, 29, 20, 0.1);
+  }
+  .salvato-icona {
+    display: inline-block;
+    vertical-align: middle;
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    margin-right: 12px;
+    border-radius: 50%;
+    background: #2f7a4a;
+    color: #ffffff;
+    text-align: center;
+    font-size: 0;
+  }
+  .salvato-icona svg { vertical-align: middle; }
+  #pannello-salvato .messaggio {
+    display: inline-block;
+    vertical-align: middle;
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    color: #1e5a35;
+  }
+
+  /* Rotella di attesa */
+  .rotella {
+    width: 40px;
+    height: 40px;
+    margin: 8px auto 16px auto;
+    border: 4px solid #ebe3d9;
+    border-top-color: #b4561b;
+    border-radius: 50%;
+    -webkit-animation: gira 0.9s linear infinite;
+    animation: gira 0.9s linear infinite;
+  }
+  .rotella-piccola {
+    display: inline-block;
+    vertical-align: middle;
+    width: 18px;
+    height: 18px;
+    margin: 0 8px 0 0;
+    border-width: 3px;
+  }
+  @-webkit-keyframes gira {
+    from { -webkit-transform: rotate(0deg); }
+    to { -webkit-transform: rotate(360deg); }
+  }
+  @keyframes gira {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  /* Scelta della persona: pillole grandi */
+  .scelte-grandi button {
+    min-height: 60px;
+    padding: 14px 24px;
+    font-size: 20px;
+  }
+
+  /* ---------------------------------------------------------------------
+     Telefoni stretti
+     --------------------------------------------------------------------- */
+  @media (max-width: 399px) {
+    .titolo-pagina { font-size: 26px; }
+    .riga-spesa-importo { font-size: 18px; }
+    .azione-home { padding: 12px; min-height: 172px; }
+    .azione-home-titolo { font-size: 18px; }
+    .azione-home-icona { width: 36px; height: 36px; line-height: 36px; margin-bottom: 8px; border-radius: 10px; }
+    .numero-cifra { font-size: 22px; }
+    /* Grafico dei 12 mesi un po' più largo e sigle più piccole */
+    .scheda-grafico { margin: 0 -8px; }
+    .etichette-colonne span { font-size: 12px; }
+    /* Ricerca: il pulsante «Cerca» va sotto il campo */
+    .riga-cerca,
+    .riga-cerca-campo,
+    .riga-cerca-pulsante { display: block; }
+    .riga-cerca-pulsante { padding: 8px 0 0 0; }
+    .riga-cerca-pulsante button { width: 100%; }
+    /* Modifica ed Elimina restano sulla stessa riga */
+    .bottone-voce { padding: 12px 14px; }
+    .bottone-voce svg { margin-right: 4px; }
+  }
+
+  /* ---------------------------------------------------------------------
+     Tablet e schermi larghi
+     --------------------------------------------------------------------- */
+  @media (min-width: 700px) {
+    #app { padding: 24px 24px 56px 24px; }
+    .con-navigazione #app { padding-bottom: 120px; }
+    .testata-dentro { padding: 12px 24px; }
+    .testata-sezione { display: table-cell; }
+    .carta { padding: 24px; }
+    .carta.sezione { padding: 0; }
+    .voce { padding: 16px 20px; }
+    .sezione-testa { padding: 12px 16px 12px 20px; }
+    .sezione-corpo { padding: 4px 24px 24px 24px; }
+    .carta-centrata { padding: 32px 28px; }
+    .titolo-pagina { font-size: 30px; }
+    .testa-pagina { margin-bottom: 24px; }
+    .azione-home { min-height: 148px; padding: 20px; }
+    .azione-home-titolo { font-size: 21px; }
+
+    /* Riepilogo: tre box affiancati con il numero grande sotto l'etichetta */
+    .numeri {
+      font-size: 0;
+      background: transparent;
+      border: 0;
+      -webkit-box-shadow: none;
+      box-shadow: none;
+    }
+    .numero {
+      display: inline-block;
+      vertical-align: top;
+      width: 32%;
+      margin: 0 2% 0 0;
+      padding: 16px 20px;
+      background: #ffffff;
+      border: 1px solid #e9e1d6;
+      border-radius: 16px;
+      -webkit-box-shadow: 0 1px 2px rgba(43, 29, 20, 0.05);
+      box-shadow: 0 1px 2px rgba(43, 29, 20, 0.05);
+    }
+    .numero:last-child { margin-right: 0; border-bottom: 1px solid #e9e1d6; }
+    .numero-cifra {
+      float: none;
+      display: block;
+      margin: 8px 0 4px 0;
+      font-size: 28px;
+    }
+
+    .tastierino button { min-height: 72px; }
+  }
+</style>

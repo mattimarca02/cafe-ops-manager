@@ -1,0 +1,46 @@
+# Dati riservati: email, PIN e ID del foglio/cartella stanno SOLO
+# nella scheda "Impostazioni" del Google Sheet, mai nel repository.
+.env
+.env.*
+*.secret
+segreti*
+impostazioni*.json
+credentials*.json
+client_secret*.json
+token*.json
+
+# File di clasp (contengono l'ID dello script): c'è solo l'esempio .clasp.json.esempio
+.clasp.json
+.clasprc.json
+deployment-id.txt
+
+# File reali di prova (non vanno mai su GitHub)
+prove/privato/
+
+# Esportazioni e foto scaricate
+*.xlsx
+*.xls
+*.csv
+*.jpg
+*.jpeg
+*.png
+*.heic
+*.pdf
+scontrini/
+esportazioni/
+# …tranne gli screenshot dell'app fatti dalle prove (dati inventati)
+!prove/screenshot/*.png
+!docs/*.png
+!esempi/fatture_ricevute_esempio.csv
+
+# Dipendenze e strumenti
+node_modules/
+
+# File di sistema / editor
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.swp
+*~

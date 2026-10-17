@@ -1,0 +1,12 @@
+﻿Tipo fattura;Tipo documento;Numero fattura / Documento;Data emissione;Data trasmissione;Codice fiscale fornitore;Partita IVA fornitore;Denominazione fornitore;Codice fiscale cliente;Partita IVA cliente;Denominazione cliente;Imponibile/Importo (totale in euro);Imposta (totale in euro);Sdi/file;Fatture consegnate;Data ricezione;Bollo virtuale
+Fattura;TD01 - Fattura;FT-2026/123;15/09/2026;15/09/2026;;01234567897;Torrefazione Esempio Srl;BRVNNA85M41H501K;12345678903;Bar Esempio di Anna Verdi;250,00;55,00;IT01234567897_00001.xml;;15/09/2026;
+Fattura;TD04 - Nota di credito;NC-0007;02/10/2026;02/10/2026;;01234567897;Torrefazione Esempio Srl;BRVNNA85M41H501K;12345678903;Bar Esempio di Anna Verdi;100,00;22,00;IT01234567897_00002.xml;;02/10/2026;
+
+Fattura;TD01 - Fattura;B-88;21/09/2026;21/09/2026;;09876543210;"Bevande ""Bianchi"" & Figli; Snc";BRVNNA85M41H501K;12345678903;Bar Esempio di Anna Verdi;1.234,56;271,60;IT09876543210_00010.xml;;21/09/2026;
+Fattura;TD01 - Fattura;EM-1;30/09/2026;30/09/2026;BRVNNA85M41H501K;12345678903;Bar Esempio di Anna Verdi;;05555555550;Cliente Fittizio Spa;80,00;17,60;IT12345678903_00003.xml;;30/09/2026;
+Fattura;TD01 - Fattura;B-88;21/09/2026;21/09/2026;;09876543210;"Bevande ""Bianchi"" & Figli; Snc";BRVNNA85M41H501K;12345678903;Bar Esempio di Anna Verdi;1.234,56;271,60;IT09876543210_00010.xml;;21/09/2026;
+Fattura;TD04 - Nota di credito;NC-NEG-1;03/10/2026;03/10/2026;;11122233344;Alimentari Prova Spa;BRVNNA85M41H501K;12345678903;Bar Esempio di Anna Verdi;-50,00;-11,00;IT11122233344_00004.xml;;03/10/2026;
+Fattura;TD01 - Fattura;12/A;2026-10-05;2026-10-05;BNCMRA70A01F205Z;;Mario Bianchi;BRVNNA85M41H501K;12345678903;Bar Esempio di Anna Verdi;80.50;17.71;IT_CF_00005.xml;;2026-10-05;
+Fattura;TD01 - Fattura;X-31;31/02/2026;31/02/2026;;11122233344;Alimentari Prova Spa;BRVNNA85M41H501K;12345678903;Bar Esempio di Anna Verdi;10,00;2,20;IT11122233344_00006.xml;;31/02/2026;
+Fattura;TD01 - Fattura;X-1;10/10/2026;
+

@@ -1,0 +1,11 @@
+# File che clasp NON deve caricare su Apps Script.
+# Si caricano solo appsscript.json, i file .gs e i file .html della cartella principale.
+**/**
+!appsscript.json
+!*.gs
+!*.html
+.git/**
+node_modules/**
+prove/**
+strumenti/**
+esempi/**

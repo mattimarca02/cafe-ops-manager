@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!-- ESEMPIO FINTO: nota di credito (TD04), codifica ISO-8859-1, namespace predefinito, senza ImportoTotaleDocumento. -->
+<FatturaElettronica versione="FPR12" xmlns="http://ivaservizi.agenziaentrate.gov.it/docs/xsd/fatture/v1.2">
+  <FatturaElettronicaHeader>
+    <DatiTrasmissione>
+      <IdTrasmittente>
+        <IdPaese>IT</IdPaese>
+        <IdCodice>09876543217</IdCodice>
+      </IdTrasmittente>
+      <ProgressivoInvio>A0007</ProgressivoInvio>
+      <FormatoTrasmissione>FPR12</FormatoTrasmissione>
+      <CodiceDestinatario>0000000</CodiceDestinatario>
+    </DatiTrasmissione>
+    <CedentePrestatore>
+      <DatiAnagrafici>
+        <IdFiscaleIVA>
+          <IdPaese>IT</IdPaese>
+          <IdCodice>09876543217</IdCodice>
+        </IdFiscaleIVA>
+        <Anagrafica>
+          <Denominazione>Bevande Societ� Fittizia Snc</Denominazione>
+        </Anagrafica>
+        <RegimeFiscale>RF01</RegimeFiscale>
+      </DatiAnagrafici>
+      <Sede>
+        <Indirizzo>Via Inventata 9</Indirizzo>
+        <CAP>12345</CAP>
+        <Comune>Città Esempio</Comune>
+        <Provincia>XX</Provincia>
+        <Nazione>IT</Nazione>
+      </Sede>
+    </CedentePrestatore>
+    <CessionarioCommittente>
+      <DatiAnagrafici>
+        <CodiceFiscale>RSSMRA60A41B157X</CodiceFiscale>
+        <Anagrafica>
+          <Denominazione>Bar di Prova</Denominazione>
+        </Anagrafica>
+      </DatiAnagrafici>
+      <Sede>
+        <Indirizzo>Via Prova 2</Indirizzo>
+        <CAP>12345</CAP>
+        <Comune>Città Esempio</Comune>
+        <Provincia>XX</Provincia>
+        <Nazione>IT</Nazione>
+      </Sede>
+    </CessionarioCommittente>
+  </FatturaElettronicaHeader>
+  <FatturaElettronicaBody>
+    <DatiGenerali>
+      <DatiGeneraliDocumento>
+        <TipoDocumento>TD04</TipoDocumento>
+        <Divisa>EUR</Divisa>
+        <Data>2026-09-20</Data>
+        <Numero>NC 15</Numero>
+        <Causale>Reso vuoti e bottiglie rotte</Causale>
+      </DatiGeneraliDocumento>
+    </DatiGenerali>
+    <DatiBeniServizi>
+      <DettaglioLinee>
+        <NumeroLinea>1</NumeroLinea>
+        <Descrizione>Storno bibite in vetro (reso)</Descrizione>
+        <Quantita>1.00</Quantita>
+        <PrezzoUnitario>40.00</PrezzoUnitario>
+        <PrezzoTotale>40.00</PrezzoTotale>
+        <AliquotaIVA>22.00</AliquotaIVA>
+      </DettaglioLinee>
+      <DatiRiepilogo>
+        <AliquotaIVA>22.00</AliquotaIVA>
+        <ImponibileImporto>40.00</ImponibileImporto>
+        <Imposta>8.80</Imposta>
+        <EsigibilitaIVA>I</EsigibilitaIVA>
+      </DatiRiepilogo>
+    </DatiBeniServizi>
+  </FatturaElettronicaBody>
+</FatturaElettronica>
